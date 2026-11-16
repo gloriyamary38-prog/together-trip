@@ -1,19 +1,30 @@
 import { Link, useLocation } from "react-router-dom";
-import { LayoutDashboard, Map, Users, Settings } from "lucide-react";
+import {
+  Calendar,
+  Home,
+  Map,
+  Plus,
+  Settings,
+  Users,
+  Wallet,
+} from "lucide-react";
 
 const navItems = [
-  { path: "/", label: "Dashboard", icon: LayoutDashboard },
+  { path: "/home", label: "Home", icon: Home },
   { path: "/trips", label: "My Trips", icon: Map },
-  { path: "/family", label: "Family", icon: Users },
-  { path: "/settings", label: "Settings", icon: Settings },
+  { path: "/create-trip", label: "Create Trip", icon: Plus },
+  { path: "/family", label: "My Family", icon: Users },
+  { path: "/groups", label: "Groups", icon: Users },
+  { path: "/itinerary", label: "Itinerary", icon: Calendar },
+  { path: "/budget", label: "Budget", icon: Wallet },
 ];
 
 const Sidebar = () => {
   const location = useLocation();
 
   return (
-    <aside className="fixed left-0 top-16 bottom-0 w-64 bg-white border-r border-neutral-200 flex flex-col">
-      <nav className="flex-1 py-6 px-3">
+    <aside className="fixed left-0 top-16 bottom-0 w-64 bg-white border-r border-neutral-200 flex flex-col z-40">
+      <nav className="flex-1 py-6 px-3 overflow-y-auto">
         <ul className="space-y-1">
           {navItems.map((item) => {
             const Icon = item.icon;
@@ -37,15 +48,13 @@ const Sidebar = () => {
         </ul>
       </nav>
       <div className="p-4 border-t border-neutral-200">
-        <div className="flex items-center gap-3 px-2">
-          <div className="w-8 h-8 rounded-full bg-neutral-200 flex items-center justify-center">
-            <span className="text-sm font-medium text-neutral-600">JD</span>
-          </div>
-          <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium text-neutral-900 truncate">John Doe</p>
-            <p className="text-xs text-neutral-500 truncate">Family Admin</p>
-          </div>
-        </div>
+        <Link
+          to="/settings"
+          className="flex items-center gap-3 px-2 text-sm font-medium text-neutral-600 hover:text-neutral-900 transition-colors"
+        >
+          <Settings className="w-5 h-5" />
+          Settings
+        </Link>
       </div>
     </aside>
   );
