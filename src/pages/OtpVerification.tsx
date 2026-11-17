@@ -52,7 +52,7 @@ const OtpVerification = () => {
   // Phone number from location state or default
   const phone = (location.state as { phone?: string })?.phone || "+91 98765 43210";
 
-  // Single source of truth for OTP value
+  // Single source of truth for the entered OTP
   const [otpValue, setOtpValue] = useState("");
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
@@ -63,20 +63,14 @@ const OtpVerification = () => {
     inputRef.current?.focus();
   }, []);
 
-  // Handle input change - single controlled input
+  // Accept only numeric digits, max 6
   const handleChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value.replace(/\D/g, "").slice(0, 6);
     setOtpValue(value);
     setError("");
   }, []);
 
-  // Handle key down for backspace navigation (visual only)
-  const handleKeyDown = useCallback((e: React.KeyboardEvent<HTMLInputElement>) => {
-    // Allow default behavior for the single input
-    // The visual boxes are read-only, so no special key handling needed
-  }, []);
-
-  // Handle paste
+  // Paste: strip non-digits and limit to 6
   const handlePaste = useCallback((e: React.ClipboardEvent<HTMLInputElement>) => {
     e.preventDefault();
     const pasted = e.clipboardData.getData("text").replace(/\D/g, "").slice(0, 6);
@@ -109,9 +103,6 @@ const OtpVerification = () => {
     }
     inputRef.current?.focus();
   }, []);
-
-  // Split OTP value into array for visual boxes
-  const digits = otpValue.padEnd(6, "").split("");
 
   return (
     <div className="flex h-screen bg-white">
@@ -150,35 +141,22 @@ const OtpVerification = () => {
             </span>. Enter it below to continue.
           </p>
 
-          {/* Single hidden input as source of truth */}
+          {/* Single visible OTP input */}
           <input
             ref={inputRef}
             type="text"
             inputMode="numeric"
             maxLength={6}
             autoComplete="one-time-code"
+            placeholder="Enter 6-digit OTP"
             value={otpValue}
             onChange={handleChange}
             onPaste={handlePaste}
-            className="absolute opacity-0 pointer-events-none w-px h-px"
-            aria-label="OTP input"
+            className={`w-full h-12 px-4 text-center text-lg font-semibold tracking-widest border rounded-lg focus:outline-none focus:ring-1 focus:ring-neutral-900 mb-4 ${
+              error ? "border-red-400" : "border-neutral-300"
+            }`}
+            aria-label="OTP code"
           />
-
-          {/* Visual six-box display */}
-          <div className="flex gap-2 mb-4" role="img" aria-label={`OTP code: ${digits.join(" ")}`}>
-            {digits.map((digit, i) => (
-              <div
-                key={i}
-                className={`w-12 h-12 text-center text-lg font-semibold border rounded-lg flex items-center justify-center ${
-                  error
-                    ? "border-red-400 bg-red-50"
-                    : "border-neutral-300 bg-white"
-                } ${i < otpValue.length ? "bg-neutral-50" : ""}`}
-              >
-                {digit}
-              </div>
-            ))}
-          </div>
 
           {error && <p className="text-sm text-red-600 mb-4">{error}</p>}
           {success && <p className="text-sm text-green-700 mb-4">Verified! Redirecting to your dashboard…</p>}
