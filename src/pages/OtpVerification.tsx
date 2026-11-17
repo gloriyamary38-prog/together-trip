@@ -3,12 +3,53 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
 import { useTrip } from "@/contexts/TripContext";
 
-const DEMO_OTP = "123456";
-
 const OtpVerification = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { setAuthenticated } = useTrip();
+
+  // Generate a random 6-digit OTP
+  const generateOtp = () => {
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    return otp;
+  };
+
+  // Store OTP in session storage and retrieve it
+  const [generatedOtp, setGeneratedOtp] = useState<string | null>(null);
+  const [displayOtp, setDisplayOtp] = useState<string | null>(null);
+
+  // On mount, check if there's an OTP in session storage (from resend)
+  useEffect(() => {
+    const storedOtp = sessionStorage.getItem("togethertrip_otp");
+    if (storedOtp) {
+      setGeneratedOtp(storedOtp);
+      setDisplayOtp(storedOtp);
+    } else {
+      // Generate a new OTP when component mounts
+      const newOtp = generateOtp();
+      setGeneratedOtp(newOtp);
+      setDisplayOtp(newOtp);
+      // Store in session storage for this session
+      try {
+        sessionStorage.setItem("togethertrip_otp", newOtp);
+      } catch (e) {
+        console.error("Failed to store OTP in sessionStorage", e);
+      }
+    }
+  }, []);
+
+  // Clean up session storage on unmount
+  useEffect(() => {
+    return () => {
+      try {
+        sessionStorage.removeItem("togethertrip_otp");
+      } catch (e) {
+        console.error("Failed to clear OTP from sessionStorage", e);
+      }
+    };
+  }, []);
+
+  // Phone number from location state or default
   const phone = (location.state as { phone?: string })?.phone || "+91 98765 43210";
 
   const [digits, setDigits] = useState<string[]>(["", "", "", "", "", ""]);
@@ -21,7 +62,7 @@ const OtpVerification = () => {
   }, []);
 
   const handleChange = (index: number, value: string) => {
-    if (!/^\d?$/.test(value)) return;
+    if (!/^\\d?$/.test(value)) return;
     const next = [...digits];
     next[index] = value;
     setDigits(next);
@@ -39,18 +80,28 @@ const OtpVerification = () => {
 
   const handleVerify = () => {
     const code = digits.join("");
-    if (code === DEMO_OTP) {
+    if (code === generatedOtp) {
       setSuccess(true);
       setAuthenticated(true);
       setTimeout(() => navigate("/home"), 600);
+    } else if (!code) {
+      setError("Please enter the OTP.");
     } else {
-      setError("Incorrect OTP. Please enter the demo code 123456.");
+      setError("Incorrect OTP. Please try again.");
     }
   };
 
   const handleResend = () => {
+    const newOtp = generateOtp();
+    setGeneratedOtp(newOtp);
+    setDisplayOtp(newOtp);
     setDigits(["", "", "", "", "", ""]);
     setError("");
+    try {
+      sessionStorage.setItem("togethertrip_otp", newOtp);
+    } catch (e) {
+      console.error("Failed to store new OTP in sessionStorage", e);
+    }
     inputsRef.current[0]?.focus();
   };
 
@@ -61,7 +112,9 @@ const OtpVerification = () => {
           <div className="w-8 h-8 border border-neutral-300 flex items-center justify-center">
             <span className="text-xs font-bold text-neutral-900">TT</span>
           </div>
-          <span className="text-xl font-bold tracking-tight text-neutral-900">TogetherTrip</span>
+          <span className="text-xl font-bold tracking-tight text-neutral-900">
+            TogetherTrip
+          </span>
         </div>
         <h1 className="text-4xl font-bold text-neutral-900 mb-6 leading-tight">
           Travel planning is better together.
@@ -79,14 +132,14 @@ const OtpVerification = () => {
             onClick={() => navigate("/sign-in")}
             className="inline-flex items-center gap-1 text-sm text-neutral-600 hover:text-neutral-900 mb-8 transition-colors"
           >
-            <ArrowLeft className="w-4 h-4" />
-            Back to sign in
+            <ArrowLeft className="w-4 h-4" />Back to sign in
           </button>
 
           <h1 className="text-3xl font-bold text-neutral-900 mb-2">Verify your number</h1>
           <p className="text-neutral-600 mb-8">
-            We've sent a 6-digit code to <span className="font-medium text-neutral-900">{phone}</span>.
-            Enter it below to continue.
+            We've sent a 6-digit code to <span className="font-medium text-neutral-900">
+              {phone}
+            </span>. Enter it below to continue.
           </p>
 
           <div className="flex gap-2 mb-4">
@@ -113,7 +166,7 @@ const OtpVerification = () => {
           <div className="bg-neutral-50 border border-neutral-200 rounded-lg p-3 mb-6">
             <p className="text-xs text-neutral-600">
               <span className="font-medium text-neutral-900">Demo mode:</span> No real SMS is sent. Use the code{" "}
-              <span className="font-mono font-semibold text-neutral-900">123456</span> to continue.
+              <span className="font-mono font-semibold text-neutral-900">{displayOtp}</span> to continue.
             </p>
           </div>
 
@@ -122,7 +175,7 @@ const OtpVerification = () => {
             disabled={digits.some((d) => !d) || success}
             className="w-full h-10 bg-neutral-900 text-white text-sm font-medium rounded-lg hover:bg-neutral-800 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
           >
-            Verify &amp; Continue
+            Verify & Continue
           </button>
 
           <button

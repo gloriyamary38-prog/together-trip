@@ -9,7 +9,19 @@ const SignIn = () => {
   const [email, setEmail] = useState("");
 
   const handleSendOtp = () => {
-    navigate("/home");
+    if (method === "phone") {
+      if (!phone.trim()) {
+        alert("Please enter a phone number.");
+        return;
+      }
+      navigate("/verify-otp", { state: { phone } });
+    } else {
+      if (!email.trim()) {
+        alert("Please enter an email address.");
+        return;
+      }
+      navigate("/verify-otp", { state: { phone: email } });
+    }
   };
 
   return (
@@ -19,7 +31,9 @@ const SignIn = () => {
           <div className="w-8 h-8 border border-neutral-300 flex items-center justify-center">
             <span className="text-xs font-bold text-neutral-900">TT</span>
           </div>
-          <span className="text-xl font-bold tracking-tight text-neutral-900">TogetherTrip</span>
+          <span className="text-xl font-bold tracking-tight text-neutral-900">
+            TogetherTrip
+          </span>
         </div>
         <h1 className="text-4xl font-bold text-neutral-900 mb-6 leading-tight">
           Travel planning is better together.
@@ -39,7 +53,9 @@ const SignIn = () => {
       <div className="w-full md:w-1/2 flex items-center justify-center p-12">
         <div className="w-full max-w-md">
           <div className="mb-8">
-            <h1 className="text-3xl font-bold text-neutral-900 mb-2">Welcome to TogetherTrip</h1>
+            <h1 className="text-3xl font-bold text-neutral-900 mb-2">
+              Welcome to TogetherTrip
+            </h1>
             <p className="text-neutral-600">
               Sign in to start planning journeys with your family. Choose your preferred sign-in method below.
             </p>
@@ -71,9 +87,13 @@ const SignIn = () => {
           {method === "phone" ? (
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-neutral-700 mb-2">Phone Number</label>
+                <label className="block text-sm font-medium text-neutral-700 mb-2">
+                  Phone Number
+                </label>
                 <div className="flex gap-2">
-                  <select className="h-10 pl-3 pr-4 border border-neutral-300 rounded-lg text-sm text-neutral-900 bg-neutral-50 focus:outline-none focus:ring-1 focus:ring-neutral-900">
+                  <select
+                    className="h-10 pl-3 pr-4 border border-neutral-300 rounded-lg text-sm text-neutral-900 bg-neutral-50 focus:outline-none focus:ring-1 focus:ring-neutral-900"
+                  >
                     <option>+91</option>
                     <option>+1</option>
                     <option>+44</option>
@@ -98,7 +118,9 @@ const SignIn = () => {
           ) : (
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-neutral-700 mb-2">Email Address</label>
+                <label className="block text-sm font-medium text-neutral-700 mb-2">
+                  Email Address
+                </label>
                 <input
                   type="email"
                   placeholder="Enter email address"

@@ -2,37 +2,18 @@ import { Link, useLocation } from "react-router-dom";
 import {
   Home,
   Map,
-  Plus,
   Users,
   Calendar,
   Wallet,
-  MapPin,
-  Compass,
-  Image as ImageIcon,
   Settings,
-  Bell,
-  UserCircle,
-  CheckSquare,
-  Zap,
 } from "lucide-react";
 
 const navItems = [
   { path: "/home", label: "Home", icon: Home },
   { path: "/trips", label: "My Trips", icon: Map },
-  { path: "/create-trip", label: "Create Trip", icon: Plus },
-  { path: "/family", label: "My Family", icon: Users },
-  { path: "/groups", label: "Groups", icon: Users },
-  { path: "/destinations", label: "Destinations", icon: MapPin },
-  { path: "/experiences", label: "Experiences", icon: Compass },
-  { path: "/stay-travel", label: "Stay & Travel", icon: ImageIcon },
-  { path: "/planning-guide", label: "Planning Guide", icon: ImageIcon },
+  { path: "/family", label: "Family & Groups", icon: Users },
   { path: "/itinerary", label: "Itinerary", icon: Calendar },
   { path: "/budget", label: "Budget", icon: Wallet },
-  { path: "/tasks/create", label: "Create Task", icon: Plus },
-  { path: "/tasks/assign", label: "Assign Responsibilities", icon: CheckSquare },
-  { path: "/travel-hub", label: "Travel Hub", icon: Zap },
-  { path: "/notifications", label: "Notifications", icon: Bell },
-  { path: "/profile", label: "Profile", icon: UserCircle },
 ];
 
 const Sidebar = () => {

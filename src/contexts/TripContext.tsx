@@ -59,6 +59,7 @@ export interface TripData {
 }
 
 const STORAGE_KEY = "togethertrip_trips";
+const AUTH_STORAGE_KEY = "togethertrip_auth";
 
 const defaultTrip: TripData = {
   id: "",
@@ -97,6 +98,7 @@ interface TripContextType {
   addMemberResponse: (response: MemberResponse) => void;
   updateMemberResponse: (id: string, data: Partial<MemberResponse>) => void;
   resetTrip: () => void;
+  logout: () => void;
 }
 
 const TripContext = createContext<TripContextType | undefined>(undefined);
@@ -104,7 +106,22 @@ const TripContext = createContext<TripContextType | undefined>(undefined);
 export const TripProvider = ({ children }: { children: React.ReactNode }) => {
   const [trips, setTrips] = useState<TripData[]>([]);
   const [currentTrip, setCurrentTrip] = useState<TripData | null>(null);
-  const [isAuthenticated, setAuthenticated] = useState(false);
+  const [isAuthenticated, setAuthenticated] = useState(() => {
+    try {
+      const stored = localStorage.getItem(AUTH_STORAGE_KEY);
+      return stored === "true";
+    } catch {
+      return false;
+    }
+  });
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(AUTH_STORAGE_KEY, isAuthenticated.toString());
+    } catch (e) {
+      console.error("Failed to save auth state to localStorage", e);
+    }
+  }, [isAuthenticated]);
 
   useEffect(() => {
     try {
@@ -227,6 +244,16 @@ export const TripProvider = ({ children }: { children: React.ReactNode }) => {
     setCurrentTrip(null);
   }, []);
 
+  const logout = useCallback(() => {
+    setAuthenticated(false);
+    setCurrentTrip(null);
+    try {
+      localStorage.removeItem(AUTH_STORAGE_KEY);
+    } catch (e) {
+      console.error("Failed to remove auth state from localStorage", e);
+    }
+  }, []);
+
   return (
     <TripContext.Provider
       value={{
@@ -243,6 +270,7 @@ export const TripProvider = ({ children }: { children: React.ReactNode }) => {
         addMemberResponse,
         updateMemberResponse,
         resetTrip,
+        logout,
       }}
     >
       {children}

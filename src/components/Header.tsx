@@ -1,7 +1,10 @@
 import { Link } from "react-router-dom";
-import { Bell, HelpCircle, Search, UserCircle } from "lucide-react";
+import { Bell, HelpCircle, Search, UserCircle, LogOut } from "lucide-react";
+import { useTrip } from "@/contexts/TripContext";
 
 const Header = () => {
+  const { logout } = useTrip();
+
   return (
     <header className="fixed top-0 left-0 right-0 h-16 bg-white border-b border-neutral-200 z-50 flex items-center justify-between px-6">
       <div className="flex items-center gap-4">
@@ -34,6 +37,13 @@ const Header = () => {
             <span className="text-xs font-medium text-neutral-600">PS</span>
           </div>
           <span className="text-sm font-medium text-neutral-900 hidden sm:block">Priya S.</span>
+          <button
+            onClick={logout}
+            className="ml-4 p-2 text-neutral-500 hover:text-neutral-900 transition-colors"
+            title="Logout"
+          >
+            <LogOut className="w-4 h-4" />
+          </button>
         </div>
       </div>
     </header>
