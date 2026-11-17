@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
 import { useTrip } from "@/contexts/TripContext";
@@ -52,58 +52,66 @@ const OtpVerification = () => {
   // Phone number from location state or default
   const phone = (location.state as { phone?: string })?.phone || "+91 98765 43210";
 
-  const [digits, setDigits] = useState<string[]>(["", "", "", "", "", ""]);
+  // Single source of truth for OTP value
+  const [otpValue, setOtpValue] = useState("");
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
-  const inputsRef = useRef<(HTMLInputElement | null)[]>([]);
+  const inputRef = useRef<HTMLInputElement>(null);
 
+  // Auto-focus on mount
   useEffect(() => {
-    inputsRef.current[0]?.focus();
+    inputRef.current?.focus();
   }, []);
 
-  const handleChange = (index: number, value: string) => {
-    if (!/^\\d?$/.test(value)) return;
-    const next = [...digits];
-    next[index] = value;
-    setDigits(next);
+  // Handle input change - single controlled input
+  const handleChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value.replace(/\D/g, "").slice(0, 6);
+    setOtpValue(value);
     setError("");
-    if (value && index < 5) {
-      inputsRef.current[index + 1]?.focus();
-    }
-  };
+  }, []);
 
-  const handleKeyDown = (index: number, e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Backspace" && !digits[index] && index > 0) {
-      inputsRef.current[index - 1]?.focus();
-    }
-  };
+  // Handle key down for backspace navigation (visual only)
+  const handleKeyDown = useCallback((e: React.KeyboardEvent<HTMLInputElement>) => {
+    // Allow default behavior for the single input
+    // The visual boxes are read-only, so no special key handling needed
+  }, []);
 
-  const handleVerify = () => {
-    const code = digits.join("");
-    if (code === generatedOtp) {
+  // Handle paste
+  const handlePaste = useCallback((e: React.ClipboardEvent<HTMLInputElement>) => {
+    e.preventDefault();
+    const pasted = e.clipboardData.getData("text").replace(/\D/g, "").slice(0, 6);
+    setOtpValue(pasted);
+    setError("");
+  }, []);
+
+  const handleVerify = useCallback(() => {
+    if (otpValue === generatedOtp) {
       setSuccess(true);
       setAuthenticated(true);
       setTimeout(() => navigate("/home"), 600);
-    } else if (!code) {
+    } else if (!otpValue) {
       setError("Please enter the OTP.");
     } else {
       setError("Incorrect OTP. Please try again.");
     }
-  };
+  }, [otpValue, generatedOtp, setAuthenticated, navigate]);
 
-  const handleResend = () => {
+  const handleResend = useCallback(() => {
     const newOtp = generateOtp();
     setGeneratedOtp(newOtp);
     setDisplayOtp(newOtp);
-    setDigits(["", "", "", "", "", ""]);
+    setOtpValue("");
     setError("");
     try {
       sessionStorage.setItem("togethertrip_otp", newOtp);
     } catch (e) {
       console.error("Failed to store new OTP in sessionStorage", e);
     }
-    inputsRef.current[0]?.focus();
-  };
+    inputRef.current?.focus();
+  }, []);
+
+  // Split OTP value into array for visual boxes
+  const digits = otpValue.padEnd(6, "").split("");
 
   return (
     <div className="flex h-screen bg-white">
@@ -142,21 +150,33 @@ const OtpVerification = () => {
             </span>. Enter it below to continue.
           </p>
 
-          <div className="flex gap-2 mb-4">
+          {/* Single hidden input as source of truth */}
+          <input
+            ref={inputRef}
+            type="text"
+            inputMode="numeric"
+            maxLength={6}
+            autoComplete="one-time-code"
+            value={otpValue}
+            onChange={handleChange}
+            onPaste={handlePaste}
+            className="absolute opacity-0 pointer-events-none w-px h-px"
+            aria-label="OTP input"
+          />
+
+          {/* Visual six-box display */}
+          <div className="flex gap-2 mb-4" role="img" aria-label={`OTP code: ${digits.join(" ")}`}>
             {digits.map((digit, i) => (
-              <input
+              <div
                 key={i}
-                ref={(el) => (inputsRef.current[i] = el)}
-                type="text"
-                inputMode="numeric"
-                maxLength={1}
-                value={digit}
-                onChange={(e) => handleChange(i, e.target.value)}
-                onKeyDown={(e) => handleKeyDown(i, e)}
-                className={`w-full h-12 text-center text-lg font-semibold border rounded-lg focus:outline-none focus:ring-1 focus:ring-neutral-900 ${
-                  error ? "border-red-400" : "border-neutral-300"
-                }`}
-              />
+                className={`w-12 h-12 text-center text-lg font-semibold border rounded-lg flex items-center justify-center ${
+                  error
+                    ? "border-red-400 bg-red-50"
+                    : "border-neutral-300 bg-white"
+                } ${i < otpValue.length ? "bg-neutral-50" : ""}`}
+              >
+                {digit}
+              </div>
             ))}
           </div>
 
@@ -172,7 +192,7 @@ const OtpVerification = () => {
 
           <button
             onClick={handleVerify}
-            disabled={digits.some((d) => !d) || success}
+            disabled={otpValue.length !== 6 || success}
             className="w-full h-10 bg-neutral-900 text-white text-sm font-medium rounded-lg hover:bg-neutral-800 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
           >
             Verify & Continue
