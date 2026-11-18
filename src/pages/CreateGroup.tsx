@@ -2,22 +2,40 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { X, Plus } from "lucide-react";
 
+type MemberPermission = "View Only" | "Edit Access";
+
+interface Member {
+  name: string;
+  age: string;
+  relationship: string;
+  phone: string;
+  email: string;
+  permission: MemberPermission;
+}
+
+const emptyMember = (): Member => ({
+  name: "",
+  age: "",
+  relationship: "",
+  phone: "",
+  email: "",
+  permission: "View Only",
+});
+
 const CreateGroup = () => {
   const navigate = useNavigate();
 
-  const [members, setMembers] = useState([
-    { name: "", age: "", relationship: "", phone: "", email: "" }
-  ]);
+  const [members, setMembers] = useState<Member[]>([emptyMember()]);
 
   const addMember = () => {
-    setMembers([...members, { name: "", age: "", relationship: "", phone: "", email: "" }]);
+    setMembers([...members, emptyMember()]);
   };
 
   const removeMember = (index: number) => {
     setMembers(members.filter((_, i) => i !== index));
   };
 
-  const updateMember = (index: number, field: string, value: string) => {
+  const updateMember = (index: number, field: keyof Member, value: string) => {
     const updatedMembers = members.map((member, i) => {
       if (i === index) {
         return { ...member, [field]: value };
@@ -34,8 +52,6 @@ const CreateGroup = () => {
       name: (document.querySelector('input[name="groupName"]') as HTMLInputElement).value,
       description: (document.querySelector('textarea[name="groupDescription"]') as HTMLTextAreaElement).value,
       members,
-      allowAccess: (document.querySelector('input[name="allowAccess"]') as HTMLInputElement).checked,
-      allowDecisions: (document.querySelector('input[name="allowDecisions"]') as HTMLInputElement).checked,
     });
     navigate("/family");
   };
@@ -93,7 +109,7 @@ const CreateGroup = () => {
           <div className="space-y-4">
             {members.map((member, index) => (
               <div key={index} className="flex gap-3 items-start">
-                <div className="flex-1 grid grid-cols-1 md:grid-cols-5 gap-3">
+                <div className="flex-1 grid grid-cols-1 md:grid-cols-6 gap-3">
                   <div>
                     <label className="block text-xs font-medium text-neutral-900 mb-1">Name</label>
                     <input
@@ -144,6 +160,17 @@ const CreateGroup = () => {
                       placeholder="Email"
                     />
                   </div>
+                  <div>
+                    <label className="block text-xs font-medium text-neutral-900 mb-1">Access Permission</label>
+                    <select
+                      value={member.permission}
+                      onChange={(e) => updateMember(index, "permission", e.target.value)}
+                      className="w-full h-9 px-3 border border-neutral-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-neutral-900 text-sm bg-white"
+                    >
+                      <option value="View Only">View Only</option>
+                      <option value="Edit Access">Edit Access</option>
+                    </select>
+                  </div>
                 </div>
                 {members.length > 1 && (
                   <button
@@ -166,47 +193,10 @@ const CreateGroup = () => {
               Add Another Member
             </button>
           </div>
-        </div>
 
-        {/* Group Access & Permissions */}
-        <div className="bg-white border border-neutral-200 rounded-lg p-6">
-          <h2 className="text-lg font-semibold text-neutral-900 mb-4">Group Access & Permissions</h2>
-          <div className="space-y-4">
-            <div className="flex items-center justify-between py-3 border-b border-neutral-100">
-              <div>
-                <p className="text-sm font-medium text-neutral-900">Allow members to access the group</p>
-                <p className="text-xs text-neutral-500">Members can view group details and participate in planning</p>
-              </div>
-              <label className="relative inline-flex items-center cursor-pointer">
-                <input
-                  type="checkbox"
-                  name="allowAccess"
-                  defaultChecked
-                  className="sr-only peer"
-                />
-                <div className="w-11 h-6 bg-neutral-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-neutral-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-neutral-200 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-neutral-900 cursor-pointer"></div>
-              </label>
-            </div>
-
-            <div className="flex items-center justify-between py-3">
-              <div>
-                <p className="text-sm font-medium text-neutral-900">Allow members to make decisions</p>
-                <p className="text-xs text-neutral-500">Members can edit trip details and make final decisions</p>
-              </div>
-              <label className="relative inline-flex items-center cursor-pointer">
-                <input
-                  type="checkbox"
-                  name="allowDecisions"
-                  defaultChecked
-                  className="sr-only peer"
-                />
-                <div className="w-11 h-6 bg-neutral-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-neutral-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-neutral-200 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-neutral-900 cursor-pointer"></div>
-              </label>
-            </div>
-          </div>
           <div className="mt-4 p-3 bg-neutral-50 border border-neutral-200 rounded-lg">
             <p className="text-xs text-neutral-600">
-              <span className="font-medium text-neutral-900">Note:</span> The group creator automatically has owner privileges and full access regardless of these settings.
+              <span className="font-medium text-neutral-900">Note:</span> The group creator automatically has owner privileges and full access. View Only members can view group information but cannot edit it, while Edit Access members can view and modify group information.
             </p>
           </div>
         </div>
