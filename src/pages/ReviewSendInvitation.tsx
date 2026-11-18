@@ -28,13 +28,28 @@ const ReviewSendInvitation = () => {
 
   const [sendError, setSendError] = useState("");
 
-  const destinations =
-    currentTrip?.proposedDestinations ||
-    currentTrip?.destinations ||
-    [];
+  const destinations = useMemo(() => {
+    const value =
+      currentTrip?.proposedDestinations ??
+      currentTrip?.destinations ??
+      [];
 
-  const invitedMembers = currentTrip?.invitedMembers || [];
-  const familyMembers = currentTrip?.familyMembers || [];
+    if (Array.isArray(value)) return value;
+    if (typeof value === "string" && value.trim()) return [value];
+
+    return [];
+  }, [
+    currentTrip?.proposedDestinations,
+    currentTrip?.destinations,
+  ]);
+
+  const invitedMembers = Array.isArray(currentTrip?.invitedMembers)
+    ? currentTrip.invitedMembers
+    : [];
+
+  const familyMembers = Array.isArray(currentTrip?.familyMembers)
+    ? currentTrip.familyMembers
+    : [];
 
   const groupNames = useMemo(
     () => [
@@ -47,13 +62,34 @@ const ReviewSendInvitation = () => {
     [invitedMembers]
   );
 
-  const totalTravellers = 1 + familyMembers.length + invitedMembers.length;
+  const totalTravellers =
+    1 + familyMembers.length + invitedMembers.length;
 
   const handleSendInvitation = () => {
+    setSendError("");
+
     if (!currentTrip?.id) {
-      setSendError("Trip details are missing. Please return to the trip creation screen.");
+      setSendError(
+        "Trip details are missing. Please return to the trip creation screen."
+      );
       return;
     }
+
+    if (typeof updateTrip !== "function") {
+      setSendError(
+        "Unable to save invitations. Please check TripContext."
+      );
+      return;
+    }
+
+    if (invitedMembers.length === 0) {
+      setSendError(
+        "Please add at least one member before sending the invitation."
+      );
+      return;
+    }
+
+    const sentAt = new Date().toISOString();
 
     const invitations = invitedMembers.map((member: any) => ({
       id: member.id,
@@ -66,7 +102,7 @@ const ReviewSendInvitation = () => {
       access: member.access || "View Only",
       status: "Pending",
       message,
-      sentAt: new Date().toISOString(),
+      sentAt,
     }));
 
     updateTrip(currentTrip.id, {
@@ -74,7 +110,7 @@ const ReviewSendInvitation = () => {
       invitations,
       invitationMessage: message,
       invitationStatus: "Sent",
-      invitationsSentAt: new Date().toISOString(),
+      invitationsSentAt: sentAt,
       status: "Planning",
     });
 
@@ -83,11 +119,15 @@ const ReviewSendInvitation = () => {
 
   const tripSummary = (
     <div className="space-y-4 text-sm">
-      <h3 className="font-semibold text-neutral-900">Trip Summary</h3>
+      <h3 className="font-semibold text-neutral-900">
+        Trip Summary
+      </h3>
 
       <div>
         <p className="text-neutral-500">Trip Name</p>
-        <p className="font-medium">{currentTrip?.name || "—"}</p>
+        <p className="font-medium">
+          {currentTrip?.name || "—"}
+        </p>
       </div>
 
       <div>
@@ -101,12 +141,16 @@ const ReviewSendInvitation = () => {
 
       <div>
         <p className="text-neutral-500">Other Members</p>
-        <p className="font-medium">{invitedMembers.length}</p>
+        <p className="font-medium">
+          {invitedMembers.length}
+        </p>
       </div>
 
       <div>
         <p className="text-neutral-500">Total Travellers</p>
-        <p className="font-medium">{totalTravellers}</p>
+        <p className="font-medium">
+          {totalTravellers}
+        </p>
       </div>
     </div>
   );
@@ -126,18 +170,28 @@ const ReviewSendInvitation = () => {
         <section className="rounded-xl border border-neutral-200 p-5">
           <div className="mb-4 flex items-center gap-2">
             <Plane className="h-5 w-5 text-neutral-600" />
-            <h3 className="font-semibold text-neutral-900">Trip Details</h3>
+            <h3 className="font-semibold text-neutral-900">
+              Trip Details
+            </h3>
           </div>
 
           <div className="grid gap-5 sm:grid-cols-2">
             <div>
-              <p className="mb-1 text-xs text-neutral-500">Trip Name</p>
-              <p className="font-medium">{currentTrip?.name || "—"}</p>
+              <p className="mb-1 text-xs text-neutral-500">
+                Trip Name
+              </p>
+              <p className="font-medium">
+                {currentTrip?.name || "—"}
+              </p>
             </div>
 
             <div>
-              <p className="mb-1 text-xs text-neutral-500">Trip Type</p>
-              <p className="font-medium">{currentTrip?.tripType || "—"}</p>
+              <p className="mb-1 text-xs text-neutral-500">
+                Trip Type
+              </p>
+              <p className="font-medium">
+                {currentTrip?.tripType || "—"}
+              </p>
             </div>
 
             <div>
@@ -146,7 +200,8 @@ const ReviewSendInvitation = () => {
                 Tentative Dates
               </p>
               <p className="font-medium">
-                {currentTrip?.startDate || "—"} – {currentTrip?.endDate || "—"}
+                {currentTrip?.startDate || "—"} –{" "}
+                {currentTrip?.endDate || "—"}
               </p>
             </div>
 
@@ -165,26 +220,36 @@ const ReviewSendInvitation = () => {
 
           {currentTrip?.purpose && (
             <div className="mt-5 border-t border-neutral-100 pt-4">
-              <p className="mb-1 text-xs text-neutral-500">Trip Purpose</p>
-              <p className="font-medium">{currentTrip.purpose}</p>
+              <p className="mb-1 text-xs text-neutral-500">
+                Trip Purpose
+              </p>
+              <p className="font-medium">
+                {currentTrip.purpose}
+              </p>
             </div>
           )}
 
-          {currentTrip?.preferences?.length > 0 && (
-            <div className="mt-4">
-              <p className="mb-2 text-xs text-neutral-500">Trip Preferences</p>
-              <div className="flex flex-wrap gap-2">
-                {currentTrip.preferences.map((preference: string) => (
-                  <span
-                    key={preference}
-                    className="rounded-full bg-neutral-100 px-3 py-1 text-xs text-neutral-700"
-                  >
-                    {preference}
-                  </span>
-                ))}
+          {Array.isArray(currentTrip?.preferences) &&
+            currentTrip.preferences.length > 0 && (
+              <div className="mt-4">
+                <p className="mb-2 text-xs text-neutral-500">
+                  Trip Preferences
+                </p>
+
+                <div className="flex flex-wrap gap-2">
+                  {currentTrip.preferences.map(
+                    (preference: string) => (
+                      <span
+                        key={preference}
+                        className="rounded-full bg-neutral-100 px-3 py-1 text-xs text-neutral-700"
+                      >
+                        {preference}
+                      </span>
+                    )
+                  )}
+                </div>
               </div>
-            </div>
-          )}
+            )}
         </section>
 
         {/* Family */}
@@ -210,6 +275,7 @@ const ReviewSendInvitation = () => {
                   <span className="font-medium">
                     {member.name || member.fullName || "Family Member"}
                   </span>
+
                   {member.age ? (
                     <span className="ml-2 text-neutral-500">
                       {member.age} years
@@ -245,9 +311,14 @@ const ReviewSendInvitation = () => {
                     <p className="font-medium text-neutral-900">
                       {member.name}
                     </p>
+
                     <p className="text-xs text-neutral-500">
-                      {member.phone || member.email || "Contact not provided"}
-                      {member.groupName ? ` · ${member.groupName}` : ""}
+                      {member.phone ||
+                        member.email ||
+                        "Contact not provided"}
+                      {member.groupName
+                        ? ` · ${member.groupName}`
+                        : ""}
                     </p>
                   </div>
 
@@ -266,6 +337,7 @@ const ReviewSendInvitation = () => {
             <h3 className="mb-3 font-semibold text-neutral-900">
               Groups Included
             </h3>
+
             <div className="flex flex-wrap gap-2">
               {groupNames.map((name: string) => (
                 <span
@@ -328,6 +400,7 @@ const ReviewSendInvitation = () => {
           />
         </section>
 
+        {/* Error */}
         {sendError && (
           <p className="rounded-lg bg-red-50 p-3 text-sm text-red-700">
             {sendError}
