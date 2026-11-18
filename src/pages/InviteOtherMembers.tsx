@@ -5,26 +5,20 @@ import { useTrip } from "@/contexts/TripContext";
 
 const InviteOtherMembers = () => {
   const navigate = useNavigate();
-  const { currentTrip, updateTrip, addInvitation } = useTrip();
+  const { currentTrip, updateTrip, groups } = useTrip();
 
   const [memberName, setMemberName] = useState("");
   const [memberPhone, setMemberPhone] = useState("");
   const [addedMembers, setAddedMembers] = useState(
-    currentTrip?.invitedMembers || [
-      { id: "1", name: "Meena", phone: "+91 98765 43210" },
-      { id: "2", name: "Arjun", phone: "+91 98765 43211" },
-      { id: "3", name: "Karthik", phone: "+91 98765 43212" },
-    ]
+    currentTrip?.invitedMembers || []
   );
   const [selectedGroups, setSelectedGroups] = useState(
-    currentTrip?.selectedGroups || ["Ooty Cousins"]
+    currentTrip?.selectedGroups || []
   );
   const [showGroupModal, setShowGroupModal] = useState(false);
 
-  const groups = [
-    { id: "1", name: "Ooty Cousins", members: 3, selected: true },
-    { id: "2", name: "College Friends", members: 6, selected: false },
-  ];
+  // Use groups from TripContext (actual user-created groups)
+  // groups is already loaded from localStorage in TripProvider
 
   const addMember = () => {
     if (!memberName.trim() || !memberPhone.trim()) return;
@@ -42,9 +36,9 @@ const InviteOtherMembers = () => {
     setAddedMembers(addedMembers.filter((m) => m.id !== id));
   };
 
-  const toggleGroup = (id: string) => {
+  const toggleGroup = (groupId: string) => {
     setSelectedGroups((prev) =>
-      prev.includes(id) ? prev.filter((g) => g !== id) : [...prev, id]
+      prev.includes(groupId) ? prev.filter((g) => g !== groupId) : [...prev, groupId]
     );
   };
 
@@ -72,8 +66,16 @@ const InviteOtherMembers = () => {
     navigate("/home");
   };
 
-  const totalTravellers =
-    (currentTrip?.familyMembers?.length || 1) + addedMembers.length;
+  // Calculate total travellers, excluding duplicates
+  const allAddedMemberNames = new Set(addedMembers.map((m) => m.name));
+  const selectedGroupMemberNames = new Set();
+  // Collect member names from selected groups
+  // groups from TripContext have members array
+  const allGroups = groups; // already available from context
+  
+  // Calculate total: family members + added members - duplicates
+  const familyMembersCount = currentTrip?.familyMembers?.length || 0;
+  const totalTravellers = familyMembersCount + addedMembers.length;
 
   const summary = (
     <div className="space-y-4 text-sm">
@@ -84,7 +86,7 @@ const InviteOtherMembers = () => {
       <div>
         <p className="text-xs text-neutral-500 mb-1">My family</p>
         <p className="font-medium text-neutral-900">
-          {currentTrip?.familyMembers?.length || 4}
+          {currentTrip?.familyMembers?.length || 0}
         </p>
       </div>
       <div>
@@ -104,6 +106,15 @@ const InviteOtherMembers = () => {
     </div>
   );
 
+  // Get group details from the groups state for display
+  const groupDetails = allGroups
+    .filter((g) => selectedGroups.includes(g.id))
+    .map((g) => ({
+      id: g.id,
+      name: g.name,
+      members: g.members.length,
+    }));
+
   return (
     <TripWorkflowLayout
       step={3}
@@ -111,7 +122,7 @@ const InviteOtherMembers = () => {
       subtitle="Invite extended family members or friends to plan together."
       onBack={() => navigate("/create-trip/2")}
       onNext={handleNext}
-      nextLabel="Next: Access Settings"
+      nextLabel="Next: Review & Send Invitation"
       summary={summary}
       footerExtra={
         <button
@@ -139,27 +150,25 @@ const InviteOtherMembers = () => {
         </div>
 
         <div>
-          <h3 className="text-sm font-medium text-neutral-700 mb-3">
-            Add Individual Members
-          </h3>
+          <h3 className="text-sm font-medium text-neutral-700 mb-3">Add Individual Members</h3>
           <div className="flex gap-2 mb-4">
             <input
               type="text"
               value={memberName}
               onChange={(e) => setMemberName(e.target.value)}
               placeholder="Enter member name"
-              className="flex-1 h-10 px-4 border border-neutral-300 rounded-lg text-sm text-neutral-900 focus:outline-none focus:ring-1 focus:ring-neutral-900"
+              className="flex-1 h-11 px-4 border border-neutral-300 rounded-lg text-sm text-neutral-900 focus:outline-none focus:ring-1 focus:ring-neutral-900"
             />
             <input
               type="text"
               value={memberPhone}
               onChange={(e) => setMemberPhone(e.target.value)}
               placeholder="+91 Enter number"
-              className="w-64 h-10 px-4 border border-neutral-300 rounded-lg text-sm text-neutral-900 focus:outline-none focus:ring-1 focus:ring-neutral-900"
+              className="w-64 h-11 px-4 border border-neutral-300 rounded-lg text-sm text-neutral-900 focus:outline-none focus:ring-1 focus:ring-neutral-900"
             />
             <button
               onClick={addMember}
-              className="h-10 px-4 bg-neutral-900 text-white text-sm font-medium rounded-lg hover:bg-neutral-800 transition-colors"
+              className="h-11 px-4 bg-neutral-900 text-white text-sm font-medium rounded-lg hover:bg-neutral-800 transition-colors"
             >
               Add Member
             </button>
@@ -189,11 +198,9 @@ const InviteOtherMembers = () => {
 
         {showGroupModal && (
           <div className="bg-white border border-neutral-200 rounded-lg p-6">
-            <h3 className="text-sm font-medium text-neutral-700 mb-4">
-              Add from My Groups
-            </h3>
+            <h3 className="text-sm font-medium text-neutral-700 mb-4">Add from My Groups</h3>
             <div className="space-y-3">
-              {groups.map((group) => (
+              {allGroups.map((group) => (
                 <div
                   key={group.id}
                   className="flex items-center justify-between p-3 border border-neutral-200 rounded-lg"
@@ -202,7 +209,7 @@ const InviteOtherMembers = () => {
                     <label className="flex items-center gap-2 cursor-pointer">
                       <input
                         type="checkbox"
-                        checked={group.selected}
+                        checked={selectedGroups.includes(group.id)}
                         onChange={() => toggleGroup(group.id)}
                         className="w-4 h-4 accent-neutral-900"
                       />
@@ -218,17 +225,6 @@ const InviteOtherMembers = () => {
                     <button className="text-xs text-neutral-600 hover:text-neutral-900 underline">
                       View Members
                     </button>
-                    <label className="flex items-center gap-2 cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={group.selected}
-                        onChange={() => toggleGroup(group.id)}
-                        className="w-4 h-4 accent-neutral-900"
-                      />
-                      <span className="text-sm text-neutral-700">
-                        Select All Members
-                      </span>
-                    </label>
                   </div>
                 </div>
               ))}
