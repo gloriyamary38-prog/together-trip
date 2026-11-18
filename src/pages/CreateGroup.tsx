@@ -103,25 +103,40 @@ const CreateGroup = () => {
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-medium text-neutral-900 mb-1">Age</label>
-                    <input
-                      type="text"
-                      value={member.age}
-                      onChange={(e) => updateMember(index, "age", e.target.value)}
-                      className="w-full h-9 px-3 border border-neutral-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-neutral-900 text-sm"
-                      placeholder="Age"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-medium text-neutral-900 mb-1">Relationship</label>
-                    <input
-                      type="text"
-                      value={member.relationship}
-                      onChange={(e) => updateMember(index, "relationship", e.target.value)}
-                      className="w-full h-9 px-3 border border-neutral-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-neutral-900 text-sm"
-                      placeholder="Relationship"
-                    />
-                  </div>
+                                      <label className="block text-xs font-medium text-neutral-900 mb-1">Age</label>
+                                      <select
+                                        value={member.age}
+                                        onChange={(e) => updateMember(index, "age", e.target.value)}
+                                        className="w-full h-9 px-3 border border-neutral-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-neutral-900 text-sm bg-white"
+                                      >
+                                        <option value="">Select Age</option>
+                                        {Array.from({ length: 100 }, (_, i) => i + 1).map((age) => (
+                                          <option key={age} value={age.toString()}>{age}</option>
+                                        ))}
+                                      </select>
+                                    </div>
+                                    <div>
+                                      <label className="block text-xs font-medium text-neutral-900 mb-1">Relationship</label>
+                                      <select
+                                        value={member.relationship}
+                                        onChange={(e) => updateMember(index, "relationship", e.target.value)}
+                                        className="w-full h-9 px-3 border border-neutral-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-neutral-900 text-sm bg-white"
+                                      >
+                                        <option value="">Select Relationship</option>
+                                        <option value="Husband">Husband</option>
+                                        <option value="Wife">Wife</option>
+                                        <option value="Father">Father</option>
+                                        <option value="Mother">Mother</option>
+                                        <option value="Brother">Brother</option>
+                                        <option value="Sister">Sister</option>
+                                        <option value="Aunt">Aunt</option>
+                                        <option value="Uncle">Uncle</option>
+                                        <option value="Cousin">Cousin</option>
+                                        <option value="Friend">Friend</option>
+                                        <option value="Sister-in-law">Sister-in-law</option>
+                                        <option value="Brother-in-law">Brother-in-law</option>
+                                      </select>
+                                    </div>
                   <div>
                     <label className="block text-xs font-medium text-neutral-900 mb-1">Phone Number</label>
                     <input
