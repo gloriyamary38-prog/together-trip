@@ -49,26 +49,20 @@ const Family = () => {
       {/* Groups Grid */}
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         {groups.length === 0 && (
-          <div className="col-span-1">
-            <div className="bg-white border border-neutral-200 rounded-lg p-12">
-              <div className="w-16 h-16 rounded-full bg-neutral-100 flex items-center justify-center mb-6">
-                <Users className="w-8 h-8 text-neutral-400" />
-              </div>
-              <h2 className="text-xl font-semibold text-neutral-900 mb-2">
-                No groups created yet
-              </h2>
-              <p className="text-neutral-600 mb-6 max-w-md">
-                Create your first group to bring family and friends together for travel planning.
-              </p>
-              <button
-                onClick={() => handleCreateGroup()}
-                className="inline-flex items-center gap-2 px-6 h-10 bg-neutral-900 text-white text-sm font-medium rounded-lg hover:bg-neutral-800 transition-colors"
-              >
-                <Plus className="w-4 h-4" /> Create Group
-              </button>
-            </div>
-          </div>
-        )}
+                  <div className="col-span-1">
+                    <div className="bg-white border border-neutral-200 rounded-lg p-12">
+                      <div className="w-16 h-16 rounded-full bg-neutral-100 flex items-center justify-center mb-6">
+                        <Users className="w-8 h-8 text-neutral-400" />
+                      </div>
+                      <h2 className="text-xl font-semibold text-neutral-900 mb-2">
+                        No groups created yet
+                      </h2>
+                      <p className="text-neutral-600 mb-6 max-w-md">
+                        Create your first group to bring family and friends together for travel planning.
+                      </p>
+                    </div>
+                  </div>
+                )}
         {groups.map((group) => (
           <div
             key={group.id}
