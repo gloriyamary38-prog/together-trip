@@ -79,6 +79,7 @@ export interface TripData {
   memberResponses: MemberResponse[];
   status: "Draft" | "Invitations Sent" | "Awaiting Confirmation" | "Finalised";
   createdAt: string;
+  proposedDestinations: string[];
 }
 
 const STORAGE_KEY = "togethertrip_trips";
@@ -106,6 +107,7 @@ const defaultTrip: TripData = {
   memberResponses: [],
   status: "Draft",
   createdAt: "",
+  proposedDestinations: [],
 };
 
 interface TripContextType {
