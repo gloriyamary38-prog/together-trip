@@ -1,13 +1,18 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { X, Plus } from "lucide-react";
+import { useTrip } from "@/contexts/TripContext";
 
 const CreateGroup = () => {
   const navigate = useNavigate();
+  const { createGroup } = useTrip();
 
   const [members, setMembers] = useState([
     { name: "", age: "", relationship: "", phone: "", email: "", access: "View Only" }
   ]);
+
+  const [groupName, setGroupName] = useState("");
+  const [groupDescription, setGroupDescription] = useState("");
 
   const addMember = () => {
     setMembers([...members, { name: "", age: "", relationship: "", phone: "", email: "", access: "View Only" }]);
@@ -27,15 +32,23 @@ const CreateGroup = () => {
     setMembers(updatedMembers);
   };
 
+  const [isEditing, setIsEditing] = useState(false);
+  const [editingGroupName, setEditingGroupName] = useState("");
+  const [editingGroupDescription, setEditingGroupDescription] = useState("");
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // In a real app, this would submit the group data
-    console.log("Group created:", {
-      name: (document.querySelector('input[name="groupName"]') as HTMLInputElement).value,
-      description: (document.querySelector('textarea[name="groupDescription"]') as HTMLTextAreaElement).value,
+    // Do not save permanently - navigate to Group Details screen instead
+    const formData = {
+      name: groupName,
+      description: groupDescription,
       members,
+    };
+    
+    // Navigate to Group Details/Review screen with the form data
+    navigate("/family/group-review", {
+      state: formData,
     });
-    navigate("/family");
   };
 
   return (
@@ -59,6 +72,8 @@ const CreateGroup = () => {
                 name="groupName"
                 type="text"
                 required
+                value={groupName}
+                onChange={(e) => setGroupName(e.target.value)}
                 className="w-full h-10 px-3 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-neutral-900 focus:ring-offset-2 text-sm"
                 placeholder="e.g. Family Trip to Ooty"
               />
@@ -71,6 +86,8 @@ const CreateGroup = () => {
                 id="groupDescription"
                 name="groupDescription"
                 rows={3}
+                value={groupDescription}
+                onChange={(e) => setGroupDescription(e.target.value)}
                 className="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-neutral-900 focus:ring-offset-2 text-sm resize-none"
                 placeholder="Optional description about the group purpose"
               />
@@ -103,40 +120,40 @@ const CreateGroup = () => {
                     />
                   </div>
                   <div>
-                                      <label className="block text-xs font-medium text-neutral-900 mb-1">Age</label>
-                                      <select
-                                        value={member.age}
-                                        onChange={(e) => updateMember(index, "age", e.target.value)}
-                                        className="w-full h-9 px-3 border border-neutral-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-neutral-900 text-sm bg-white"
-                                      >
-                                        <option value="">Select Age</option>
-                                        {Array.from({ length: 100 }, (_, i) => i + 1).map((age) => (
-                                          <option key={age} value={age.toString()}>{age}</option>
-                                        ))}
-                                      </select>
-                                    </div>
-                                    <div>
-                                      <label className="block text-xs font-medium text-neutral-900 mb-1">Relationship</label>
-                                      <select
-                                        value={member.relationship}
-                                        onChange={(e) => updateMember(index, "relationship", e.target.value)}
-                                        className="w-full h-9 px-3 border border-neutral-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-neutral-900 text-sm bg-white"
-                                      >
-                                        <option value="">Select Relationship</option>
-                                        <option value="Husband">Husband</option>
-                                        <option value="Wife">Wife</option>
-                                        <option value="Father">Father</option>
-                                        <option value="Mother">Mother</option>
-                                        <option value="Brother">Brother</option>
-                                        <option value="Sister">Sister</option>
-                                        <option value="Aunt">Aunt</option>
-                                        <option value="Uncle">Uncle</option>
-                                        <option value="Cousin">Cousin</option>
-                                        <option value="Friend">Friend</option>
-                                        <option value="Sister-in-law">Sister-in-law</option>
-                                        <option value="Brother-in-law">Brother-in-law</option>
-                                      </select>
-                                    </div>
+                    <label className="block text-xs font-medium text-neutral-900 mb-1">Age</label>
+                    <select
+                      value={member.age}
+                      onChange={(e) => updateMember(index, "age", e.target.value)}
+                      className="w-full h-9 px-3 border border-neutral-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-neutral-900 text-sm bg-white"
+                    >
+                      <option value="">Select Age</option>
+                      {Array.from({ length: 100 }, (_, i) => i + 1).map((age) => (
+                        <option key={age} value={age.toString()}>{age}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-neutral-900 mb-1">Relationship</label>
+                    <select
+                      value={member.relationship}
+                      onChange={(e) => updateMember(index, "relationship", e.target.value)}
+                      className="w-full h-9 px-3 border border-neutral-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-neutral-900 text-sm bg-white"
+                    >
+                      <option value="">Select Relationship</option>
+                      <option value="Husband">Husband</option>
+                      <option value="Wife">Wife</option>
+                      <option value="Father">Father</option>
+                      <option value="Mother">Mother</option>
+                      <option value="Brother">Brother</option>
+                      <option value="Sister">Sister</option>
+                      <option value="Aunt">Aunt</option>
+                      <option value="Uncle">Uncle</option>
+                      <option value="Cousin">Cousin</option>
+                      <option value="Friend">Friend</option>
+                      <option value="Sister-in-law">Sister-in-law</option>
+                      <option value="Brother-in-law">Brother-in-law</option>
+                    </select>
+                  </div>
                   <div>
                     <label className="block text-xs font-medium text-neutral-900 mb-1">Phone Number</label>
                     <input
@@ -186,8 +203,7 @@ const CreateGroup = () => {
               onClick={addMember}
               className="inline-flex items-center gap-2 text-sm text-neutral-600 hover:text-neutral-900 transition-colors mt-2"
             >
-              <Plus className="w-4 h-4" />
-              Add Another Member
+              <Plus className="w-4 h-4" /> Add Another Member
             </button>
           </div>
         </div>

@@ -129,6 +129,19 @@ interface TripContextType {
   deleteGroup: (id: string) => void;
 }
 
+const defaultGroup: Group = {
+  id: "",
+  name: "",
+  description: "",
+  primaryUser: {
+    name: "",
+    role: "",
+    access: "",
+  },
+  members: [],
+  createdAt: "",
+};
+
 const TripContext = createContext<TripContextType | undefined>(undefined);
 
 export const TripProvider = ({ children }: { children: React.ReactNode }) => {
@@ -170,6 +183,60 @@ export const TripProvider = ({ children }: { children: React.ReactNode }) => {
     }
   }, [trips]);
 
+  const [groups, setGroups] = useState<Group[]>([]);
+
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem(GROUPS_STORAGE_KEY);
+      if (stored) {
+        setGroups(JSON.parse(stored));
+      }
+    } catch (e) {
+      console.error("Failed to load groups from localStorage", e);
+    }
+  }, []);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(GROUPS_STORAGE_KEY, JSON.stringify(groups));
+    } catch (e) {
+      console.error("Failed to save groups to localStorage", e);
+    }
+  }, [groups]);
+
+  const createGroup = useCallback(
+    (data: Partial<Group>) => {
+      const newGroup: Group = {
+        id: data.id || `group-${Date.now()}`,
+        name: data.name || "",
+        description: data.description || "",
+        primaryUser: {
+          name: data.primaryUser?.name || "Priya S.",
+          role: data.primaryUser?.role || "Group Owner",
+          access: data.primaryUser?.access || "Full Access",
+        },
+        members: data.members || [],
+        createdAt: new Date().toISOString(),
+      };
+      setGroups((prev) => [...prev, newGroup]);
+      return newGroup;
+    },
+    []
+  );
+
+  const updateGroup = useCallback(
+    (id: string, data: Partial<Group>) => {
+      setGroups((prev) =>
+        prev.map((g) => (g.id === id ? { ...g, ...data } : g))
+      );
+    },
+    []
+  );
+
+  const deleteGroup = useCallback((id: string) => {
+    setGroups((prev) => prev.filter((g) => g.id !== id));
+  }, []);
+
   const createTrip = useCallback(
     (data: Partial<TripData>) => {
       const newTrip: TripData = {
@@ -209,9 +276,9 @@ export const TripProvider = ({ children }: { children: React.ReactNode }) => {
     setCurrentTrip((prev) => {
       if (!prev) return null;
       const updated = { ...prev, invitations: [...prev.invitations, invitation] };
-      setTrips((trips) =>
-        trips.map((t) => (t.id === prev.id ? updated : t))
-      );
+      setTrips((trips) => {
+        return trips.map((t) => (t.id === prev.id ? updated : t));
+      });
       return updated;
     });
   }, []);
@@ -226,9 +293,9 @@ export const TripProvider = ({ children }: { children: React.ReactNode }) => {
             inv.id === id ? { ...inv, status } : inv
           ),
         };
-        setTrips((trips) =>
-          trips.map((t) => (t.id === prev.id ? updated : t))
-        );
+        setTrips((trips) => {
+          return trips.map((t) => (t.id === prev.id ? updated : t));
+        });
         return updated;
       });
     },
@@ -242,9 +309,9 @@ export const TripProvider = ({ children }: { children: React.ReactNode }) => {
         ...prev,
         memberResponses: [...prev.memberResponses, response],
       };
-      setTrips((trips) =>
-        trips.map((t) => (t.id === prev.id ? updated : t))
-      );
+      setTrips((trips) => {
+        return trips.map((t) => (t.id === prev.id ? updated : t));
+      });
       return updated;
     });
   }, []);
@@ -259,9 +326,9 @@ export const TripProvider = ({ children }: { children: React.ReactNode }) => {
             r.id === id ? { ...r, ...data } : r
           ),
         };
-        setTrips((trips) =>
-          trips.map((t) => (t.id === prev.id ? updated : t))
-        );
+        setTrips((trips) => {
+          return trips.map((t) => (t.id === prev.id ? updated : t));
+        });
         return updated;
       });
     },
@@ -299,6 +366,10 @@ export const TripProvider = ({ children }: { children: React.ReactNode }) => {
         updateMemberResponse,
         resetTrip,
         logout,
+        groups,
+        createGroup,
+        updateGroup,
+        deleteGroup,
       }}
     >
       {children}
