@@ -39,6 +39,29 @@ export interface MemberResponse {
   status: "Not Submitted" | "Submitted";
 }
 
+export interface GroupMember {
+  id: string;
+  name: string;
+  age: string;
+  relationship: string;
+  phone: string;
+  email: string;
+  access: "View Only" | "Edit Access";
+}
+
+export interface Group {
+  id: string;
+  name: string;
+  description: string;
+  primaryUser: {
+    name: string;
+    role: string;
+    access: string;
+  };
+  members: GroupMember[];
+  createdAt: string;
+}
+
 export interface TripData {
   id: string;
   name: string;
@@ -60,6 +83,7 @@ export interface TripData {
 
 const STORAGE_KEY = "togethertrip_trips";
 const AUTH_STORAGE_KEY = "togethertrip_auth";
+const GROUPS_STORAGE_KEY = "togethertrip_groups";
 
 const defaultTrip: TripData = {
   id: "",
@@ -99,6 +123,10 @@ interface TripContextType {
   updateMemberResponse: (id: string, data: Partial<MemberResponse>) => void;
   resetTrip: () => void;
   logout: () => void;
+  groups: Group[];
+  createGroup: (data: Partial<Group>) => Group;
+  updateGroup: (id: string, data: Partial<Group>) => void;
+  deleteGroup: (id: string) => void;
 }
 
 const TripContext = createContext<TripContextType | undefined>(undefined);
