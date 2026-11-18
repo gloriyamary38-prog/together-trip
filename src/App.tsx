@@ -48,6 +48,7 @@ import QuickActions from "./pages/QuickActions";
 import NotificationsPage from "./pages/NotificationsPage";
 import ProfilePage from "./pages/ProfilePage";
 import Family from "./pages/Family";
+import CreateGroup from "./pages/CreateGroup";
 import Settings from "./pages/Settings";
 import { useTrip } from "./contexts/TripContext";
 
@@ -200,15 +201,16 @@ const App = () => (
             <Route index element={<TripConfirmation />} />
           </Route>
           <Route
-            path="/family"
-            element={
-              <ProtectedRoute>
-                <Layout />
-              </ProtectedRoute>
-            }
-          >
-            <Route index element={<Family />} />
-          </Route>
+                      path="/family"
+                      element={
+                        <ProtectedRoute>
+                          <Layout />
+                        </ProtectedRoute>
+                      }
+                    >
+                      <Route index element={<Family />} />
+                      <Route path="create-group" element={<CreateGroup />} />
+                    </Route>
           <Route
             path="/groups"
             element={

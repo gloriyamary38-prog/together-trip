@@ -1,39 +1,34 @@
-import { Users } from "lucide-react";
+import { Users, Plus } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 const Family = () => {
+  const navigate = useNavigate();
+
   return (
     <div className="max-w-6xl mx-auto">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-neutral-900 mb-2">Family</h1>
-        <p className="text-neutral-600">Manage your family members and their roles.</p>
+        <h1 className="text-3xl font-bold text-neutral-900 mb-2">Family & Groups</h1>
+        <p className="text-neutral-600">Create and manage your travel groups.</p>
       </div>
 
-      <div className="bg-white border border-neutral-200 rounded-lg p-6">
-        <div className="flex items-center gap-3 mb-6">
-          <div className="w-10 h-10 rounded-lg bg-neutral-100 flex items-center justify-center">
-            <Users className="w-5 h-5 text-neutral-600" />
+      <div className="bg-white border border-neutral-200 rounded-lg p-12">
+        <div className="flex flex-col items-center justify-center text-center">
+          <div className="w-16 h-16 rounded-full bg-neutral-100 flex items-center justify-center mb-6">
+            <Users className="w-8 h-8 text-neutral-400" />
           </div>
-          <h2 className="text-lg font-semibold text-neutral-900">Family Members</h2>
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {[
-            { name: "John Doe", role: "Family Admin", initials: "JD" },
-            { name: "Jane Doe", role: "Admin", initials: "JD" },
-            { name: "Emma Doe", role: "Member", initials: "ED" },
-            { name: "Michael Doe", role: "Member", initials: "MD" },
-            { name: "Grandma Rose", role: "Member", initials: "GR" },
-            { name: "Grandpa Joe", role: "Member", initials: "GJ" },
-          ].map((member, i) => (
-            <div key={i} className="flex items-center gap-3 p-4 border border-neutral-200 rounded-lg">
-              <div className="w-10 h-10 rounded-full bg-neutral-100 flex items-center justify-center">
-                <span className="text-sm font-medium text-neutral-600">{member.initials}</span>
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-neutral-900 truncate">{member.name}</p>
-                <p className="text-xs text-neutral-500 truncate">{member.role}</p>
-              </div>
-            </div>
-          ))}
+          <h2 className="text-xl font-semibold text-neutral-900 mb-2">
+            No groups created yet
+          </h2>
+          <p className="text-neutral-600 mb-6 max-w-md">
+            Create your first group to bring family and friends together for travel planning.
+          </p>
+          <button
+            onClick={() => navigate("/family/create-group")}
+            className="inline-flex items-center gap-2 px-6 h-10 bg-neutral-900 text-white text-sm font-medium rounded-lg hover:bg-neutral-800 transition-colors"
+          >
+            <Plus className="w-4 h-4" />
+            Create Group
+          </button>
         </div>
       </div>
     </div>
