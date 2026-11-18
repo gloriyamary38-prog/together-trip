@@ -154,7 +154,7 @@ const App = () => {
             >
               <Route index element={<Family />} />
               <Route path="create-group" element={<CreateGroup />} />
-              <Route path="group-review" element={<CreateGroup />} />
+              <Route path="group-review" element={<GroupDetails />} />
               <Route
                 path="group-details/:id"
                 element={<ProtectedRoute><Layout /><GroupDetails /></ProtectedRoute>}
