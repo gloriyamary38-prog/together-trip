@@ -1,5 +1,13 @@
-import { createContext, useContext, useEffect, useState, useCallback } from "react";
 
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+  useCallback,
+} from "react";
+
+// FAMILY MEMBER
 export interface FamilyMember {
   id: string;
   name: string;
@@ -7,26 +15,48 @@ export interface FamilyMember {
   role: "Trip Owner" | "Family Member";
 }
 
+// INVITED MEMBER
 export interface InvitedMember {
   id: string;
   name: string;
   phone: string;
+  email?: string;
   group?: string;
+  source?: "individual" | "group";
+  groupId?: string;
+  groupName?: string;
+  access?: string;
 }
 
+// ACCESS SETTINGS
 export interface AccessSettings {
-  canView: "invited-members-only" | "selected-groups-and-invited-members" | "anyone-with-link";
-  canEdit: "only-me" | "me-and-selected-members" | "all-invited-members";
+  canView:
+    | "invited-members-only"
+    | "selected-groups-and-invited-members"
+    | "anyone-with-link";
+  canEdit:
+    | "only-me"
+    | "me-and-selected-members"
+    | "all-invited-members";
   selectedEditors?: string[];
 }
 
+// INVITATION
 export interface Invitation {
   id: string;
   member: string;
   phone: string;
   status: "Pending" | "Accepted" | "Declined";
+  email?: string;
+  source?: string;
+  groupId?: string;
+  groupName?: string;
+  access?: string;
+  message?: string;
+  sentAt?: string;
 }
 
+// MEMBER RESPONSE
 export interface MemberResponse {
   id: string;
   member: string;
@@ -39,6 +69,7 @@ export interface MemberResponse {
   status: "Not Submitted" | "Submitted";
 }
 
+// GROUP MEMBER
 export interface GroupMember {
   id: string;
   name: string;
@@ -49,6 +80,7 @@ export interface GroupMember {
   access: "View Only" | "Edit Access";
 }
 
+// GROUP
 export interface Group {
   id: string;
   name: string;
@@ -62,6 +94,7 @@ export interface Group {
   createdAt: string;
 }
 
+// TRIP DATA
 export interface TripData {
   id: string;
   name: string;
@@ -77,15 +110,24 @@ export interface TripData {
   accessSettings: AccessSettings;
   invitations: Invitation[];
   memberResponses: MemberResponse[];
-  status: "Draft" | "Invitations Sent" | "Awaiting Confirmation" | "Finalised";
+  status:
+    | "Draft"
+    | "Invitations Sent"
+    | "Awaiting Confirmation"
+    | "Finalised";
   createdAt: string;
   proposedDestinations: string[];
+  invitationMessage?: string;
+  invitationStatus?: string;
+  invitationsSentAt?: string;
 }
 
+// STORAGE KEYS
 const STORAGE_KEY = "togethertrip_trips";
 const AUTH_STORAGE_KEY = "togethertrip_auth";
 const GROUPS_STORAGE_KEY = "togethertrip_groups";
 
+// DEFAULT TRIP
 const defaultTrip: TripData = {
   id: "",
   name: "",
@@ -110,27 +152,7 @@ const defaultTrip: TripData = {
   proposedDestinations: [],
 };
 
-interface TripContextType {
-  trips: TripData[];
-  currentTrip: TripData | null;
-  isAuthenticated: boolean;
-  setAuthenticated: (val: boolean) => void;
-  createTrip: (data: Partial<TripData>) => void;
-  updateTrip: (id: string, data: Partial<TripData>) => void;
-  setCurrentTrip: (trip: TripData | null) => void;
-  deleteTrip: (id: string) => void;
-  addInvitation: (invitation: Invitation) => void;
-  updateInvitationStatus: (id: string, status: "Pending" | "Accepted" | "Declined") => void;
-  addMemberResponse: (response: MemberResponse) => void;
-  updateMemberResponse: (id: string, data: Partial<MemberResponse>) => void;
-  resetTrip: () => void;
-  logout: () => void;
-  groups: Group[];
-  createGroup: (data: Partial<Group>) => Group;
-  updateGroup: (id: string, data: Partial<Group>) => void;
-  deleteGroup: (id: string) => void;
-}
-
+// DEFAULT GROUP
 const defaultGroup: Group = {
   id: "",
   name: "",
@@ -144,11 +166,49 @@ const defaultGroup: Group = {
   createdAt: "",
 };
 
-const TripContext = createContext<TripContextType | undefined>(undefined);
+// CONTEXT TYPE
+interface TripContextType {
+  trips: TripData[];
+  currentTrip: TripData | null;
+  isAuthenticated: boolean;
+  setAuthenticated: (val: boolean) => void;
+  createTrip: (data: Partial<TripData>) => void;
+  updateTrip: (id: string, data: Partial<TripData>) => void;
+  setCurrentTrip: (trip: TripData | null) => void;
+  deleteTrip: (id: string) => void;
+  addInvitation: (invitation: Invitation) => void;
+  updateInvitationStatus: (
+    id: string,
+    status: "Pending" | "Accepted" | "Declined"
+  ) => void;
+  addMemberResponse: (response: MemberResponse) => void;
+  updateMemberResponse: (
+    id: string,
+    data: Partial<MemberResponse>
+  ) => void;
+  resetTrip: () => void;
+  logout: () => void;
+  groups: Group[];
+  createGroup: (data: Partial<Group>) => Group;
+  updateGroup: (id: string, data: Partial<Group>) => void;
+  deleteGroup: (id: string) => void;
+}
 
-export const TripProvider = ({ children }: { children: React.ReactNode }) => {
+// CREATE CONTEXT
+const TripContext = createContext<TripContextType | undefined>(
+  undefined
+);
+
+// PROVIDER
+export const TripProvider = ({
+  children,
+}: {
+  children: React.ReactNode;
+}) => {
   const [trips, setTrips] = useState<TripData[]>([]);
-  const [currentTrip, setCurrentTrip] = useState<TripData | null>(null);
+  const [currentTrip, setCurrentTrip] =
+    useState<TripData | null>(null);
+
   const [isAuthenticated, setAuthenticated] = useState(() => {
     try {
       const stored = localStorage.getItem(AUTH_STORAGE_KEY);
@@ -158,87 +218,123 @@ export const TripProvider = ({ children }: { children: React.ReactNode }) => {
     }
   });
 
-  useEffect(() => {
-    try {
-      localStorage.setItem(AUTH_STORAGE_KEY, isAuthenticated.toString());
-    } catch (e) {
-      console.error("Failed to save auth state to localStorage", e);
-    }
-  }, [isAuthenticated]);
+  const [groups, setGroups] = useState<Group[]>([]);
 
+  // LOAD SAVED TRIPS
   useEffect(() => {
     try {
       const stored = localStorage.getItem(STORAGE_KEY);
+
       if (stored) {
-        setTrips(JSON.parse(stored));
+        const parsed = JSON.parse(stored);
+
+        if (Array.isArray(parsed)) {
+          setTrips(parsed);
+        }
       }
-    } catch (e) {
-      console.error("Failed to load trips from localStorage", e);
+    } catch (error) {
+      console.error("Failed to load trips:", error);
     }
   }, []);
 
+  // SAVE TRIPS
   useEffect(() => {
     try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(trips));
-    } catch (e) {
-      console.error("Failed to save trips to localStorage", e);
+      localStorage.setItem(
+        STORAGE_KEY,
+        JSON.stringify(trips)
+      );
+    } catch (error) {
+      console.error("Failed to save trips:", error);
     }
   }, [trips]);
 
-  const [groups, setGroups] = useState<Group[]>([]);
+  // SAVE AUTHENTICATION
+  useEffect(() => {
+    try {
+      localStorage.setItem(
+        AUTH_STORAGE_KEY,
+        isAuthenticated.toString()
+      );
+    } catch (error) {
+      console.error("Failed to save authentication:", error);
+    }
+  }, [isAuthenticated]);
 
+  // LOAD GROUPS
   useEffect(() => {
     try {
       const stored = localStorage.getItem(GROUPS_STORAGE_KEY);
+
       if (stored) {
-        setGroups(JSON.parse(stored));
+        const parsed = JSON.parse(stored);
+
+        if (Array.isArray(parsed)) {
+          setGroups(parsed);
+        }
       }
-    } catch (e) {
-      console.error("Failed to load groups from localStorage", e);
+    } catch (error) {
+      console.error("Failed to load groups:", error);
     }
   }, []);
 
+  // SAVE GROUPS
   useEffect(() => {
     try {
-      localStorage.setItem(GROUPS_STORAGE_KEY, JSON.stringify(groups));
-    } catch (e) {
-      console.error("Failed to save groups to localStorage", e);
+      localStorage.setItem(
+        GROUPS_STORAGE_KEY,
+        JSON.stringify(groups)
+      );
+    } catch (error) {
+      console.error("Failed to save groups:", error);
     }
   }, [groups]);
 
+  // CREATE GROUP
   const createGroup = useCallback(
-    (data: Partial<Group>) => {
+    (data: Partial<Group>): Group => {
       const newGroup: Group = {
+        ...defaultGroup,
+        ...data,
         id: data.id || `group-${Date.now()}`,
-        name: data.name || "",
-        description: data.description || "",
         primaryUser: {
-          name: data.primaryUser?.name || "Priya S.",
+          ...defaultGroup.primaryUser,
+          ...data.primaryUser,
+          name: data.primaryUser?.name || "Group Owner",
           role: data.primaryUser?.role || "Group Owner",
           access: data.primaryUser?.access || "Full Access",
         },
         members: data.members || [],
-        createdAt: new Date().toISOString(),
+        createdAt: data.createdAt || new Date().toISOString(),
       };
-      setGroups((prev) => [...prev, newGroup]);
+
+      setGroups((previous) => [...previous, newGroup]);
+
       return newGroup;
     },
     []
   );
 
+  // UPDATE GROUP
   const updateGroup = useCallback(
     (id: string, data: Partial<Group>) => {
-      setGroups((prev) =>
-        prev.map((g) => (g.id === id ? { ...g, ...data } : g))
+      setGroups((previous) =>
+        previous.map((group) =>
+          group.id === id ? { ...group, ...data, id } : group
+        )
       );
     },
     []
   );
 
+  // DELETE GROUP
   const deleteGroup = useCallback((id: string) => {
-    setGroups((prev) => prev.filter((g) => g.id !== id));
+    setGroups((previous) =>
+      previous.filter((group) => group.id !== id)
+    );
   }, []);
 
+  // CREATE TRIP
   const createTrip = useCallback(
     (data: Partial<TripData>) => {
       const newTrip: TripData = {
@@ -247,107 +343,222 @@ export const TripProvider = ({ children }: { children: React.ReactNode }) => {
         id: data.id || `trip-${Date.now()}`,
         createdAt: data.createdAt || new Date().toISOString(),
       };
-      setTrips((prev) => [...prev, newTrip]);
+
+      setTrips((previous) => {
+        const alreadyExists = previous.some(
+          (trip) => trip.id === newTrip.id
+        );
+
+        if (alreadyExists) {
+          return previous.map((trip) =>
+            trip.id === newTrip.id ? { ...trip, ...newTrip } : trip
+          );
+        }
+
+        return [...previous, newTrip];
+      });
+
       setCurrentTrip(newTrip);
     },
     []
   );
 
+  // UPDATE OR INSERT TRIP
   const updateTrip = useCallback(
     (id: string, data: Partial<TripData>) => {
-      setTrips((prev) =>
-        prev.map((t) => (t.id === id ? { ...t, ...data } : t))
-      );
-      setCurrentTrip((prev) => (prev?.id === id ? { ...prev, ...data } : prev));
+      if (!id) {
+        console.error("Cannot save trip without an ID.");
+        return;
+      }
+
+      let savedTrip: TripData | null = null;
+
+      setTrips((previous) => {
+        const existingTrip = previous.find(
+          (trip) => trip.id === id
+        );
+
+        if (existingTrip) {
+          savedTrip = {
+            ...existingTrip,
+            ...data,
+            id,
+          };
+
+          return previous.map((trip) =>
+            trip.id === id ? savedTrip! : trip
+          );
+        }
+
+        savedTrip = {
+          ...defaultTrip,
+          ...data,
+          id,
+          createdAt: data.createdAt || new Date().toISOString(),
+        };
+
+        return [...previous, savedTrip];
+      });
+
+      setCurrentTrip((previous) => {
+        if (previous?.id === id) {
+          return {
+            ...previous,
+            ...data,
+            id,
+          };
+        }
+
+        return previous || savedTrip;
+      });
     },
     []
   );
 
-  const setCurrentTripFn = useCallback((trip: TripData | null) => {
-    setCurrentTrip(trip);
-  }, []);
+  // SET CURRENT TRIP
+  const setCurrentTripFn = useCallback(
+    (trip: TripData | null) => {
+      setCurrentTrip(trip);
+    },
+    []
+  );
 
+  // DELETE TRIP
   const deleteTrip = useCallback((id: string) => {
-    setTrips((prev) => prev.filter((t) => t.id !== id));
-    if (currentTrip?.id === id) {
-      setCurrentTrip(null);
-    }
-  }, [currentTrip]);
+    setTrips((previous) =>
+      previous.filter((trip) => trip.id !== id)
+    );
 
-  const addInvitation = useCallback((invitation: Invitation) => {
-    setCurrentTrip((prev) => {
-      if (!prev) return null;
-      const updated = { ...prev, invitations: [...prev.invitations, invitation] };
-      setTrips((trips) => {
-        return trips.map((t) => (t.id === prev.id ? updated : t));
-      });
-      return updated;
-    });
+    setCurrentTrip((previous) =>
+      previous?.id === id ? null : previous
+    );
   }, []);
 
-  const updateInvitationStatus = useCallback(
-    (id: string, status: "Pending" | "Accepted" | "Declined") => {
-      setCurrentTrip((prev) => {
-        if (!prev) return null;
+  // ADD INVITATION
+  const addInvitation = useCallback(
+    (invitation: Invitation) => {
+      setCurrentTrip((previous) => {
+        if (!previous) return null;
+
         const updated = {
-          ...prev,
-          invitations: prev.invitations.map((inv) =>
-            inv.id === id ? { ...inv, status } : inv
-          ),
+          ...previous,
+          invitations: [
+            ...(previous.invitations || []),
+            invitation,
+          ],
         };
-        setTrips((trips) => {
-          return trips.map((t) => (t.id === prev.id ? updated : t));
-        });
+
+        setTrips((savedTrips) =>
+          savedTrips.map((trip) =>
+            trip.id === previous.id ? updated : trip
+          )
+        );
+
         return updated;
       });
     },
     []
   );
 
-  const addMemberResponse = useCallback((response: MemberResponse) => {
-    setCurrentTrip((prev) => {
-      if (!prev) return null;
-      const updated = {
-        ...prev,
-        memberResponses: [...prev.memberResponses, response],
-      };
-      setTrips((trips) => {
-        return trips.map((t) => (t.id === prev.id ? updated : t));
-      });
-      return updated;
-    });
-  }, []);
+  // UPDATE INVITATION STATUS
+  const updateInvitationStatus = useCallback(
+    (
+      id: string,
+      status: "Pending" | "Accepted" | "Declined"
+    ) => {
+      setCurrentTrip((previous) => {
+        if (!previous) return null;
 
+        const updated = {
+          ...previous,
+          invitations: (previous.invitations || []).map(
+            (invitation) =>
+              invitation.id === id
+                ? { ...invitation, status }
+                : invitation
+          ),
+        };
+
+        setTrips((savedTrips) =>
+          savedTrips.map((trip) =>
+            trip.id === previous.id ? updated : trip
+          )
+        );
+
+        return updated;
+      });
+    },
+    []
+  );
+
+  // ADD MEMBER RESPONSE
+  const addMemberResponse = useCallback(
+    (response: MemberResponse) => {
+      setCurrentTrip((previous) => {
+        if (!previous) return null;
+
+        const updated = {
+          ...previous,
+          memberResponses: [
+            ...(previous.memberResponses || []),
+            response,
+          ],
+        };
+
+        setTrips((savedTrips) =>
+          savedTrips.map((trip) =>
+            trip.id === previous.id ? updated : trip
+          )
+        );
+
+        return updated;
+      });
+    },
+    []
+  );
+
+  // UPDATE MEMBER RESPONSE
   const updateMemberResponse = useCallback(
     (id: string, data: Partial<MemberResponse>) => {
-      setCurrentTrip((prev) => {
-        if (!prev) return null;
+      setCurrentTrip((previous) => {
+        if (!previous) return null;
+
         const updated = {
-          ...prev,
-          memberResponses: prev.memberResponses.map((r) =>
-            r.id === id ? { ...r, ...data } : r
+          ...previous,
+          memberResponses: (previous.memberResponses || []).map(
+            (response) =>
+              response.id === id
+                ? { ...response, ...data }
+                : response
           ),
         };
-        setTrips((trips) => {
-          return trips.map((t) => (t.id === prev.id ? updated : t));
-        });
+
+        setTrips((savedTrips) =>
+          savedTrips.map((trip) =>
+            trip.id === previous.id ? updated : trip
+          )
+        );
+
         return updated;
       });
     },
     []
   );
 
+  // RESET CURRENT TRIP
   const resetTrip = useCallback(() => {
     setCurrentTrip(null);
   }, []);
 
+  // LOGOUT
   const logout = useCallback(() => {
     setAuthenticated(false);
     setCurrentTrip(null);
+
     try {
       localStorage.removeItem(AUTH_STORAGE_KEY);
-    } catch (e) {
-      console.error("Failed to remove auth state from localStorage", e);
+    } catch (error) {
+      console.error("Failed to remove authentication:", error);
     }
   }, []);
 
@@ -379,10 +590,13 @@ export const TripProvider = ({ children }: { children: React.ReactNode }) => {
   );
 };
 
+// USE TRIP
 export const useTrip = () => {
   const context = useContext(TripContext);
+
   if (!context) {
     throw new Error("useTrip must be used within a TripProvider");
   }
+
   return context;
 };
