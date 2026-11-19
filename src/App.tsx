@@ -93,7 +93,9 @@ const App = () => {
         <Toaster />
         <Sonner />
 
-        <BrowserRouter>
+        <BrowserRouter
+         future={{
+         v7_relativeSplatPath: true, }}>
           <Routes>
             {/* Authentication */}
             <Route path="/" element={<SignIn />} />
