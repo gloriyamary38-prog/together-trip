@@ -96,7 +96,9 @@ const Dashboard = () => {
     return status === "completed" || status === "past";
   });
 
-  const activeTrips = tripList.filter((trip) => !pastTrips.includes(trip));
+  const activeTrips = tripList.filter(
+    (trip) => !pastTrips.includes(trip)
+  );
 
   return (
     <div className="max-w-5xl">
@@ -128,15 +130,13 @@ const Dashboard = () => {
       </div>
 
       {/* Explore and Plan */}
-      <div className="flex items-start justify-between mb-4">
-        <div>
-          <h2 className="text-lg font-semibold text-neutral-900">
-            Explore & Plan
-          </h2>
-          <p className="text-sm text-neutral-500">
-            Choose where to begin your family journey.
-          </p>
-        </div>
+      <div className="mb-4">
+        <h2 className="text-lg font-semibold text-neutral-900">
+          Explore & Plan
+        </h2>
+        <p className="text-sm text-neutral-500">
+          Choose where to begin your family journey.
+        </p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
@@ -146,6 +146,7 @@ const Dashboard = () => {
           return (
             <button
               key={card.title}
+              type="button"
               className="flex items-center gap-4 p-4 border border-neutral-200 rounded-lg text-left hover:border-neutral-300 transition-colors"
             >
               <div className="w-11 h-11 rounded-lg bg-neutral-100 flex items-center justify-center flex-shrink-0">
@@ -205,7 +206,9 @@ const Dashboard = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {activeTrips.map((trip) => {
               const progress =
-                (trip.status || "").toLowerCase() === "finalised" ? 100 : 25;
+                (trip.status || "").toLowerCase() === "finalised"
+                  ? 100
+                  : 25;
 
               return (
                 <div
@@ -235,7 +238,8 @@ const Dashboard = () => {
                     <div className="flex items-center gap-2 text-sm text-neutral-600">
                       <Calendar className="w-4 h-4" />
                       <span>
-                        {formatDate(trip.startDate)} – {formatDate(trip.endDate)}
+                        {formatDate(trip.startDate)} –{" "}
+                        {formatDate(trip.endDate)}
                       </span>
                     </div>
 
@@ -267,10 +271,11 @@ const Dashboard = () => {
                     </p>
                   </div>
 
-                  <div className="flex items-center justify-end mt-4 text-sm font-medium text-neutral-700">
+                  {/* Continue Planning */}
+                  <div className="flex items-center justify-end gap-2 mt-4 text-sm font-medium text-neutral-700">
                     <Link
                       to={`/trips/${trip.id}/invitations`}
-                      className="inline-flex items-center gap-2 underline hover:text-neutral-900"
+                      className="underline text-neutral-600 hover:text-neutral-900 transition-colors inline-flex items-center gap-2"
                     >
                       Continue Planning
                       <ArrowRight className="w-4 h-4" />
@@ -333,7 +338,9 @@ const Dashboard = () => {
       {/* Groups */}
       <div>
         <div className="flex items-center justify-between mb-3">
-          <h2 className="text-lg font-semibold text-neutral-900">Groups</h2>
+          <h2 className="text-lg font-semibold text-neutral-900">
+            Groups
+          </h2>
 
           <Link
             to="/groups"
@@ -357,8 +364,12 @@ const Dashboard = () => {
             </div>
 
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-semibold text-neutral-900">Family</p>
-              <p className="text-sm text-neutral-500">View family members</p>
+              <p className="text-sm font-semibold text-neutral-900">
+                Family
+              </p>
+              <p className="text-sm text-neutral-500">
+                View family members
+              </p>
             </div>
 
             <ArrowRight className="w-4 h-4 text-neutral-400 flex-shrink-0" />
@@ -373,8 +384,12 @@ const Dashboard = () => {
             </div>
 
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-semibold text-neutral-900">Friends</p>
-              <p className="text-sm text-neutral-500">View groups</p>
+              <p className="text-sm font-semibold text-neutral-900">
+                Friends
+              </p>
+              <p className="text-sm text-neutral-500">
+                View groups
+              </p>
             </div>
 
             <ArrowRight className="w-4 h-4 text-neutral-400 flex-shrink-0" />
