@@ -178,11 +178,16 @@ const Dashboard = () => {
                   </div>
 
                   <div className="flex items-center justify-end gap-2 mt-4 text-sm font-medium text-neutral-700">
-                    Continue Planning
-                    <ArrowRight className="w-4 h-4" />
-                  </div>
-                </Link>
-              );
+                                      <Link
+                                        to={`/trips/${trip.id}/invitations`}
+                                        className="underline"
+                                      >
+                                        Continue Planning
+                                        <ArrowRight className="w-4 h-4" />
+                                      </Link>
+                                    </div>
+                                  </Link>
+                                );
             })}
           </div>
         )}
