@@ -141,7 +141,7 @@ const App = () => {
               <Route index element={<AssignResponsibilities />} />
             </Route>
             <Route path="/tasks/my-tasks" element={<ProtectedRoute><Layout /></ProtectedRoute>}>
-              <Route index element<MyAssignedTasks /> />
+              <Route index element={<MyAssignedTasks />} />
             </Route>
             <Route path="/tasks/progress" element={<ProtectedRoute><Layout /></ProtectedRoute>}>
               <Route index element={<TaskProgress />} />
