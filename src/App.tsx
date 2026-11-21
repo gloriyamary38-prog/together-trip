@@ -16,7 +16,6 @@ import InviteOtherMembers from "./pages/InviteOtherMembers";
 import TripAccessSettings from "./pages/TripAccessSettings";
 import ReviewSendInvitation from "./pages/ReviewSendInvitation";
 import InvitationSentSuccess from "./pages/InvitationSentSuccess";
-import InvitationTracking from "./pages/InvitationTracking";
 import MemberPreferenceSubmission from "./pages/MemberPreferenceSubmission";
 import ReviewMemberResponses from "./pages/ReviewMemberResponses";
 import TripConfirmation from "./pages/TripConfirmation";
