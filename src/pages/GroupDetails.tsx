@@ -33,14 +33,10 @@ const GroupDetails = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  // Read group ID from the URL path
-  const { groupId: routeGroupId } = useParams<{ groupId: string }>();
+  // Read the group ID from the route: group-details/:id
+  const { id: routeGroupId } = useParams<{ id: string }>();
 
-  const {
-    groups,
-    createGroup,
-    updateGroup,
-  } = useTrip();
+  const { groups, createGroup, updateGroup } = useTrip();
 
   const urlParams = new URLSearchParams(location.search);
   const groupId = routeGroupId || urlParams.get("id");
@@ -81,7 +77,7 @@ const GroupDetails = () => {
     if (loadedGroup) {
       setGroupName(loadedGroup.name);
       setGroupDescription(loadedGroup.description);
-      setMembers(loadedGroup.members as GroupMemberForm[]);
+      setMembers((loadedGroup.members || []) as GroupMemberForm[]);
       setEditingGroupName(loadedGroup.name);
       setEditingGroupDescription(loadedGroup.description);
     }
@@ -131,7 +127,6 @@ const GroupDetails = () => {
     }
 
     if (groupId && loadedGroup) {
-      // Update the existing group
       const updatedGroup: Group = {
         ...loadedGroup,
         name: groupName.trim(),
@@ -146,7 +141,6 @@ const GroupDetails = () => {
         description: "Your group has been successfully updated.",
       });
     } else {
-      // Create a new group
       createGroup({
         name: groupName.trim(),
         description: groupDescription,
@@ -200,7 +194,6 @@ const GroupDetails = () => {
 
   return (
     <div className="max-w-4xl mx-auto">
-
       {/* Back button */}
       <div className="mb-6">
         <button
@@ -213,7 +206,6 @@ const GroupDetails = () => {
       </div>
 
       <div className="bg-white border border-neutral-200 rounded-lg p-8">
-
         <h1 className="text-3xl font-bold text-neutral-900 mb-6">
           {isEditingGroup ? "Edit Group" : "Group Details"}
         </h1>
