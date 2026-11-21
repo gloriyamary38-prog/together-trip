@@ -198,6 +198,10 @@ const App = () => {
 
             <Route
               path="/invitation-sent"
+                        element={<ProtectedRoute><Layout /><InvitationSentSuccess /></ProtectedRoute}>
+                          <Route path="/trips/:id/invitations" element={<ProtectedRoute><Layout /><InvitationTracking /></ProtectedRoute}>)>
+                            <Route index element={<InvitationTracking />} />
+                          </Route>
               element={
                 <ProtectedRoute>
                   <Layout />
