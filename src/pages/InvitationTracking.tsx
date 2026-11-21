@@ -1,4 +1,3 @@
-
 import { useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import {
@@ -9,9 +8,7 @@ import {
   Clock,
   Mail,
   MapPin,
-  MessageCircle,
   Users,
-  XCircle,
 } from "lucide-react";
 import { useTrip } from "@/contexts/TripContext";
 
@@ -49,9 +46,12 @@ const InvitationTracking = () => {
 
   const trip = trips.find((item) => item.id === id);
 
-  const invitations: InvitationItem[] = useMemo(() => {
+  // Use only trip.invitations as the data source to avoid duplicates
+  // If no invitations exist, fall back to trip.invitedMembers
+  const allInvitations: InvitationItem[] = useMemo(() => {
     if (!trip) return [];
 
+    // First try trip.invitations
     if (trip.invitations && trip.invitations.length > 0) {
       return trip.invitations.map((invitation) => ({
         id: invitation.id,
@@ -64,6 +64,7 @@ const InvitationTracking = () => {
       }));
     }
 
+    // Fall back to trip.invitedMembers
     return (trip.invitedMembers || []).map((member) => ({
       id: member.id,
       member: member.name,
@@ -75,17 +76,19 @@ const InvitationTracking = () => {
     }));
   }, [trip]);
 
-  const acceptedCount = invitations.filter(
+  const acceptedCount = allInvitations.filter(
     (item) => item.status === "Accepted"
   ).length;
 
-  const pendingCount = invitations.filter(
+  const pendingCount = allInvitations.filter(
     (item) => item.status === "Pending"
   ).length;
 
-  const declinedCount = invitations.filter(
+  const declinedCount = allInvitations.filter(
     (item) => item.status === "Declined"
   ).length;
+
+  const totalInvitedCount = allInvitations.length;
 
   const handleSendReminder = () => {
     setReminderMessage(
@@ -112,8 +115,7 @@ const InvitationTracking = () => {
           to="/trips"
           className="inline-flex items-center gap-2 text-sm font-medium underline"
         >
-          <ArrowLeft className="w-4 h-4" />
-          Back to My Trips
+          <ArrowLeft className="w-4 h-4" /> Back to My Trips
         </Link>
       </div>
     );
@@ -126,18 +128,16 @@ const InvitationTracking = () => {
 
   return (
     <div className="max-w-5xl mx-auto space-y-6 pb-10">
-
       {/* Header */}
-      <div>
+      <div className="flex items-start gap-3">
         <Link
           to="/trips"
           className="inline-flex items-center gap-2 text-sm text-neutral-500 hover:text-neutral-900 mb-5"
         >
-          <ArrowLeft className="w-4 h-4" />
-          Back to My Trips
+          <ArrowLeft className="w-4 h-4" /> Back to My Trips
         </Link>
 
-        <div className="flex items-start gap-3 mb-3">
+        <div className="flex items-start gap-3">
           <div className="w-12 h-12 rounded-xl bg-green-50 flex items-center justify-center">
             <CheckCircle2 className="w-6 h-6 text-green-600" />
           </div>
@@ -152,15 +152,6 @@ const InvitationTracking = () => {
             </p>
           </div>
         </div>
-
-        <p className="text-sm text-neutral-600">
-          Invitations were sent for{" "}
-          <span className="font-semibold text-neutral-900">
-            {trip.name}
-          </span>
-          . Your family members can now review the proposed destination and
-          dates.
-        </p>
       </div>
 
       {/* Trip Summary */}
@@ -195,7 +186,7 @@ const InvitationTracking = () => {
             <div>
               <p className="text-xs text-neutral-500">Total Invited</p>
               <p className="text-sm font-medium text-neutral-900">
-                {invitations.length} members
+                {totalInvitedCount} members
               </p>
             </div>
           </div>
@@ -203,7 +194,7 @@ const InvitationTracking = () => {
       </section>
 
       {/* Invitation Statistics */}
-      <section>
+      <section className="mb-6">
         <h2 className="text-base font-semibold text-neutral-900 mb-3">
           Invitation Overview
         </h2>
@@ -212,7 +203,7 @@ const InvitationTracking = () => {
           <div className="rounded-xl border border-neutral-200 p-4">
             <p className="text-xs text-neutral-500 mb-2">Invited</p>
             <p className="text-2xl font-bold text-neutral-900">
-              {invitations.length}
+              {totalInvitedCount}
             </p>
           </div>
 
@@ -251,7 +242,7 @@ const InvitationTracking = () => {
           </p>
         </div>
 
-        {invitations.length === 0 ? (
+        {allInvitations.length === 0 ? (
           <div className="p-8 text-center">
             <Users className="w-8 h-8 text-neutral-300 mx-auto mb-3" />
 
@@ -264,24 +255,24 @@ const InvitationTracking = () => {
             </p>
           </div>
         ) : (
-          <div className="overflow-x-auto">
+          <div className="p-4 overflow-x-auto">
             <table className="w-full text-sm text-left">
               <thead className="bg-neutral-50 text-neutral-500">
                 <tr>
-                  <th className="px-5 py-3 font-medium">Member Name</th>
-                  <th className="px-5 py-3 font-medium">Contact</th>
-                  <th className="px-5 py-3 font-medium">Status</th>
-                  <th className="px-5 py-3 font-medium">Date Sent</th>
+                  <th className="px-4 py-3 font-medium">Member Name</th>
+                  <th className="px-4 py-3 font-medium">Contact</th>
+                  <th className="px-4 py-3 font-medium">Status</th>
+                  <th className="px-4 py-3 font-medium">Date Sent</th>
                 </tr>
               </thead>
 
               <tbody>
-                {invitations.map((invitation) => (
+                {allInvitations.map((invitation) => (
                   <tr
                     key={invitation.id}
-                    className="border-t border-neutral-100"
+                    className="border-b border-neutral-100"
                   >
-                    <td className="px-5 py-4">
+                    <td className="px-4 py-4">
                       <p className="font-medium text-neutral-900">
                         {invitation.member}
                       </p>
@@ -293,32 +284,29 @@ const InvitationTracking = () => {
                       )}
                     </td>
 
-                    <td className="px-5 py-4 text-neutral-600">
+                    <td className="px-4 py-4 text-neutral-600">
                       {invitation.phone ||
                         invitation.email ||
                         "Not provided"}
                     </td>
 
-                    <td className="px-5 py-4">
+                    <td className="px-4 py-4">
                       {invitation.status === "Accepted" ? (
                         <span className="inline-flex items-center gap-1 text-green-700">
-                          <CheckCircle2 className="w-4 h-4" />
-                          Accepted
+                          <CheckCircle2 className="w-4 h-4" /> Accepted
                         </span>
                       ) : invitation.status === "Declined" ? (
                         <span className="inline-flex items-center gap-1 text-red-700">
-                          <XCircle className="w-4 h-4" />
-                          Declined
+                          <XCircle className="w-4 h-4" /> Declined
                         </span>
                       ) : (
                         <span className="inline-flex items-center gap-1 text-amber-700">
-                          <Clock className="w-4 h-4" />
-                          Pending
+                          <Clock className="w-4 h-4" /> Pending
                         </span>
                       )}
                     </td>
 
-                    <td className="px-5 py-4 text-neutral-600">
+                    <td className="px-4 py-4 text-neutral-600">
                       {formatDate(invitation.sentAt)}
                     </td>
                   </tr>
@@ -342,8 +330,7 @@ const InvitationTracking = () => {
           to="/trips"
           className="inline-flex items-center justify-center gap-2 rounded-lg border border-neutral-300 px-5 py-3 text-sm font-medium text-neutral-700 hover:bg-neutral-50"
         >
-          <ArrowLeft className="w-4 h-4" />
-          Back to My Trips
+          <ArrowLeft className="w-4 h-4" /> Back to My Trips
         </Link>
 
         <div className="flex flex-col sm:flex-row gap-3">
@@ -353,8 +340,7 @@ const InvitationTracking = () => {
             disabled={pendingCount === 0}
             className="inline-flex items-center justify-center gap-2 rounded-lg border border-neutral-300 px-5 py-3 text-sm font-medium text-neutral-700 hover:bg-neutral-50 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            <MessageCircle className="w-4 h-4" />
-            Send Reminder
+            <MessageCircle className="w-4 h-4" /> Send Reminder
           </button>
 
           <Link
