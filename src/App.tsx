@@ -163,8 +163,18 @@ const App = () => {
               <Route index element={<GroupChat />} />
             </Route>
             <Route path="/travel-hub/quick-actions" element={<ProtectedRoute><Layout /></ProtectedRoute>}>
-              <Route index element={<QuickActions />} />
-            </Route>
+                          <Route index element={<QuickActions />} />
+                        </Route>
+            
+                        <Route path="/family" element={<ProtectedRoute><Layout /><Family /></ProtectedRoute>}>
+                          <Route index element={<Family />} />
+                          <Route path="create-group" element={<CreateGroup />} />
+                          <Route path="group-review" element={<GroupDetails />} />
+                        </Route>
+            
+                        <Route path="/groups" element={<ProtectedRoute><Layout /></ProtectedRoute>}>
+                          <Route index element={<Placeholder title="Groups" />} />
+                        </Route>
             <Route path="/notifications" element={<ProtectedRoute><Layout /></ProtectedRoute>}>
               <Route index element={<NotificationsPage />} />
             </Route>
