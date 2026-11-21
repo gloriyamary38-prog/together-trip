@@ -1,612 +1,496 @@
 
-import React from "react";
-import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import {
-  BrowserRouter,
-  Routes,
-  Route,
-  Navigate,
-} from "react-router-dom";
+import { useEffect, useState } from "react";
+import { useNavigate, useLocation, useParams } from "react-router-dom";
+import { X, Plus, Trash2 } from "lucide-react";
+import { useTrip, type Group } from "@/contexts/TripContext";
+import { toast } from "@/components/ui/use-toast";
 
-import Layout from "@/components/Layout";
-import { useTrip } from "./contexts/TripContext";
-
-import SignIn from "./pages/SignIn";
-import Dashboard from "./pages/Dashboard";
-import MyTrips from "./pages/MyTrips";
-import Placeholder from "./pages/Placeholder";
-import NotFound from "./pages/NotFound";
-import OtpVerification from "./pages/OtpVerification";
-
-import CreateTrip from "./pages/CreateTrip";
-import MyFamilyPreferences from "./pages/MyFamilyPreferences";
-import InviteOtherMembers from "./pages/InviteOtherMembers";
-import ReviewSendInvitation from "./pages/ReviewSendInvitation";
-import InvitationSentSuccess from "./pages/InvitationSentSuccess";
-
-import MemberPreferenceSubmission from "./pages/MemberPreferenceSubmission";
-import ReviewMemberResponses from "./pages/ReviewMemberResponses";
-import TripConfirmation from "./pages/TripConfirmation";
-import TripWorkspace from "./pages/TripWorkspace";
-
-import Destinations from "./pages/Destinations";
-import Experiences from "./pages/Experiences";
-import StayTravel from "./pages/StayTravel";
-import PlanningGuide from "./pages/PlanningGuide";
-
-import DayWiseItinerary from "./pages/DayWiseItinerary";
-import MemberItineraryReview from "./pages/MemberItineraryReview";
-import ItineraryChangeRequests from "./pages/ItineraryChangeRequests";
-import OrganiserReview from "./pages/OrganiserReview";
-import FinalItineraryConfirmation from "./pages/FinalItineraryConfirmation";
-
-import CreateBudget from "./pages/CreateBudget";
-import ExpenseCategories from "./pages/ExpenseCategories";
-import SelectContributingMembers from "./pages/SelectContributingMembers";
-import MemberContributions from "./pages/MemberContributions";
-import BudgetReview from "./pages/BudgetReview";
-import BudgetFinalisation from "./pages/BudgetFinalisation";
-
-import TaskCreation from "./pages/TaskCreation";
-import AssignResponsibilities from "./pages/AssignResponsibilities";
-import MyAssignedTasks from "./pages/MyAssignedTasks";
-import TaskProgress from "./pages/TaskProgress";
-import TaskOrganiserReview from "./pages/TaskOrganiserReview";
-
-import TravelHub from "./pages/TravelHub";
-import ConfirmedItinerary from "./pages/ConfirmedItinerary";
-import DocumentsTickets from "./pages/DocumentsTickets";
-import GroupChat from "./pages/GroupChat";
-import QuickActions from "./pages/QuickActions";
-
-import NotificationsPage from "./pages/NotificationsPage";
-import ProfilePage from "./pages/ProfilePage";
-import Settings from "./pages/Settings";
-
-import Family from "./pages/Family";
-import CreateGroup from "./pages/CreateGroup";
-import GroupDetails from "./pages/GroupDetails";
-
-const queryClient = new QueryClient();
-
-interface ProtectedRouteProps {
-  children: React.ReactNode;
+interface GroupMemberForm {
+  name: string;
+  age: string;
+  relationship: string;
+  phone: string;
+  email: string;
+  access: "View Only" | "Edit Access";
 }
 
-const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
-  const { isAuthenticated } = useTrip();
-
-  return isAuthenticated ? (
-    <>{children}</>
-  ) : (
-    <Navigate to="/sign-in" replace />
-  );
+const emptyMember: GroupMemberForm = {
+  name: "",
+  age: "",
+  relationship: "",
+  phone: "",
+  email: "",
+  access: "View Only",
 };
 
-const App = () => {
+const GroupDetails = () => {
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  // IMPORTANT: App.tsx defines the route as group-details/:id
+  const { id: routeGroupId } = useParams<{ id: string }>();
+
+  const {
+    groups,
+    createGroup,
+    updateGroup,
+  } = useTrip();
+
+  const urlParams = new URLSearchParams(location.search);
+  const groupId = routeGroupId || urlParams.get("id");
+  const isEditMode = urlParams.get("edit") === "true";
+
+  const loadedGroup = groups.find(
+    (group) => group.id === groupId
+  );
+
+  const [groupName, setGroupName] = useState("");
+  const [groupDescription, setGroupDescription] = useState("");
+  const [members, setMembers] = useState<GroupMemberForm[]>([]);
+  const [isEditingGroup, setIsEditingGroup] = useState(isEditMode);
+  const [newMember, setNewMember] = useState<GroupMemberForm>({
+    ...emptyMember,
+  });
+
+  // Load the saved group whenever its data becomes available
+  useEffect(() => {
+    if (loadedGroup) {
+      setGroupName(loadedGroup.name || "");
+      setGroupDescription(loadedGroup.description || "");
+      setMembers(
+        (loadedGroup.members || []) as GroupMemberForm[]
+      );
+    }
+  }, [loadedGroup]);
+
+  const primaryUser = loadedGroup?.primaryUser || {
+    name: "Priya S.",
+    role: "Group Owner",
+    access: "Full Access",
+  };
+
+  // Add a member
+  const handleAddMember = () => {
+    if (!newMember.name.trim()) {
+      toast({
+        title: "Member name required",
+        description: "Please enter the member's name.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setMembers((previous) => [
+      ...previous,
+      { ...newMember },
+    ]);
+
+    setNewMember({ ...emptyMember });
+  };
+
+  // Remove a member
+  const handleRemoveMember = (index: number) => {
+    setMembers((previous) =>
+      previous.filter((_, i) => i !== index)
+    );
+  };
+
+  // Save group
+  const handleSaveGroup = () => {
+    if (!groupName.trim()) {
+      toast({
+        title: "Group name required",
+        description: "Please enter a group name.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const groupData: Partial<Group> = {
+      name: groupName.trim(),
+      description: groupDescription,
+      members,
+    };
+
+    if (groupId) {
+      if (!loadedGroup) {
+        toast({
+          title: "Group not found",
+          description: "The saved group could not be located. No new group was created.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      updateGroup(groupId, groupData);
+
+      toast({
+        title: "Group Updated",
+        description: "Your group has been updated successfully.",
+      });
+    } else {
+      createGroup({
+        ...groupData,
+        primaryUser: {
+          name: primaryUser.name,
+          role: primaryUser.role,
+          access: primaryUser.access,
+        },
+      });
+
+      toast({
+        title: "Group Created",
+        description: "Your group has been created successfully.",
+      });
+    }
+
+    navigate("/family");
+  };
+
+  const handleCancelEdit = () => {
+    if (loadedGroup) {
+      setGroupName(loadedGroup.name);
+      setGroupDescription(loadedGroup.description);
+      setMembers(
+        loadedGroup.members as GroupMemberForm[]
+      );
+    }
+
+    setIsEditingGroup(false);
+  };
+
+  // Loading or missing group protection
+  if (groupId && !loadedGroup) {
+    return (
+      <div className="max-w-4xl mx-auto p-8">
+        <button
+          onClick={() => navigate("/family")}
+          className="mb-6 text-sm text-neutral-600 hover:text-neutral-900"
+        >
+          Back to Family & Groups
+        </button>
+
+        <div className="bg-white border border-neutral-200 rounded-lg p-8">
+          <h1 className="text-2xl font-bold mb-3">
+            Group not available
+          </h1>
+          <p className="text-neutral-600">
+            The saved group could not be found. Please return to Family & Groups and select the group again.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
+    <div className="max-w-4xl mx-auto">
+      {/* Back button */}
+      <div className="mb-6">
+        <button
+          onClick={() => navigate("/family")}
+          className="inline-flex items-center gap-2 text-sm text-neutral-600 hover:text-neutral-900"
+        >
+          <X className="w-4 h-4" />
+          Back to Family & Groups
+        </button>
+      </div>
 
-        <BrowserRouter
-         future={{
-         v7_relativeSplatPath: true, }}>
-          <Routes>
-            {/* Authentication */}
-            <Route path="/" element={<SignIn />} />
-            <Route path="/sign-in" element={<SignIn />} />
-            <Route path="/verify-otp" element={<OtpVerification />} />
+      <div className="bg-white border border-neutral-200 rounded-lg p-8">
+        <h1 className="text-3xl font-bold text-neutral-900 mb-6">
+          Group Details
+        </h1>
 
-            {/* Dashboard */}
-            <Route
-              path="/home"
-              element={
-                <ProtectedRoute>
-                  <Layout />
-                </ProtectedRoute>
-              }
+        {/* Group Information */}
+        <div className="mb-8">
+          <h2 className="text-lg font-semibold mb-4">
+            Group Information
+          </h2>
+
+          {isEditingGroup ? (
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium mb-2">
+                  Group Name
+                </label>
+                <input
+                  type="text"
+                  value={groupName}
+                  onChange={(e) =>
+                    setGroupName(e.target.value)
+                  }
+                  className="w-full h-10 px-3 border border-neutral-300 rounded-lg text-sm"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-2">
+                  Group Description
+                </label>
+                <textarea
+                  rows={3}
+                  value={groupDescription}
+                  onChange={(e) =>
+                    setGroupDescription(e.target.value)
+                  }
+                  className="w-full px-3 py-2 border border-neutral-300 rounded-lg text-sm"
+                />
+              </div>
+            </div>
+          ) : (
+            <div className="bg-neutral-50 border border-neutral-200 rounded-lg p-4">
+              <h3 className="text-xl font-medium mb-2">
+                {groupName}
+              </h3>
+              <p className="text-neutral-600">
+                {groupDescription || "No description added"}
+              </p>
+            </div>
+          )}
+        </div>
+
+        {/* Primary User */}
+        <div className="mb-8 p-4 bg-neutral-100 rounded-lg">
+          <h2 className="text-lg font-semibold mb-4">
+            Primary User
+          </h2>
+
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 rounded-full bg-neutral-900 flex items-center justify-center text-white font-medium">
+              {primaryUser.name.charAt(0)}
+            </div>
+
+            <div>
+              <p className="font-medium text-neutral-900">
+                {primaryUser.name}
+              </p>
+              <p className="text-sm text-neutral-500">
+                {primaryUser.role}
+              </p>
+            </div>
+          </div>
+
+          <p className="text-sm text-neutral-500 mt-3">
+            Access: {primaryUser.access}
+          </p>
+        </div>
+
+        {/* Group Members */}
+        <div>
+          <h2 className="text-lg font-semibold mb-4">
+            Group Members ({members.length})
+          </h2>
+
+          {members.length === 0 ? (
+            <p className="text-neutral-600">
+              No members added yet.
+            </p>
+          ) : (
+            <div className="space-y-4">
+              {members.map((member, index) => (
+                <div
+                  key={`${member.name}-${index}`}
+                  className="bg-white border border-neutral-200 rounded-lg p-4"
+                >
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className="w-10 h-10 rounded-full bg-neutral-900 flex items-center justify-center text-white font-medium">
+                      {member.name.charAt(0).toUpperCase()}
+                    </div>
+
+                    <div className="flex-1">
+                      <p className="font-medium text-neutral-900">
+                        {member.name}
+                      </p>
+                      <p className="text-sm text-neutral-500">
+                        {member.age
+                          ? `${member.age} · `
+                          : ""}
+                        {member.relationship}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm">
+                    <p className="bg-neutral-100 px-3 py-2 rounded">
+                      Phone: {member.phone || "Not provided"}
+                    </p>
+
+                    <p className="bg-neutral-100 px-3 py-2 rounded">
+                      Email: {member.email || "Not provided"}
+                    </p>
+                  </div>
+
+                  <div className="mt-3 flex items-center justify-between">
+                    <span className="px-3 py-1 rounded text-xs bg-neutral-100 text-neutral-800">
+                      {member.access || "View Only"}
+                    </span>
+
+                    {isEditingGroup && (
+                      <button
+                        onClick={() =>
+                          handleRemoveMember(index)
+                        }
+                        className="inline-flex items-center gap-1 text-sm text-red-600"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                        Remove
+                      </button>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Add Member */}
+        {isEditingGroup && (
+          <div className="mt-8 p-4 bg-neutral-50 rounded-lg">
+            <h2 className="text-lg font-semibold mb-4">
+              Add Member
+            </h2>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <input
+                type="text"
+                placeholder="Name"
+                value={newMember.name}
+                onChange={(e) =>
+                  setNewMember({
+                    ...newMember,
+                    name: e.target.value,
+                  })
+                }
+                className="h-10 px-3 border border-neutral-300 rounded-lg text-sm"
+              />
+
+              <input
+                type="number"
+                placeholder="Age"
+                value={newMember.age}
+                onChange={(e) =>
+                  setNewMember({
+                    ...newMember,
+                    age: e.target.value,
+                  })
+                }
+                className="h-10 px-3 border border-neutral-300 rounded-lg text-sm"
+              />
+
+              <select
+                value={newMember.relationship}
+                onChange={(e) =>
+                  setNewMember({
+                    ...newMember,
+                    relationship: e.target.value,
+                  })
+                }
+                className="h-10 px-3 border border-neutral-300 rounded-lg text-sm bg-white"
+              >
+                <option value="">Select Relationship</option>
+                <option value="Husband">Husband</option>
+                <option value="Wife">Wife</option>
+                <option value="Father">Father</option>
+                <option value="Mother">Mother</option>
+                <option value="Brother">Brother</option>
+                <option value="Sister">Sister</option>
+                <option value="Friend">Friend</option>
+                <option value="Other">Other</option>
+              </select>
+
+              <input
+                type="tel"
+                placeholder="Phone"
+                value={newMember.phone}
+                onChange={(e) =>
+                  setNewMember({
+                    ...newMember,
+                    phone: e.target.value,
+                  })
+                }
+                className="h-10 px-3 border border-neutral-300 rounded-lg text-sm"
+              />
+
+              <input
+                type="email"
+                placeholder="Email"
+                value={newMember.email}
+                onChange={(e) =>
+                  setNewMember({
+                    ...newMember,
+                    email: e.target.value,
+                  })
+                }
+                className="h-10 px-3 border border-neutral-300 rounded-lg text-sm"
+              />
+
+              <select
+                value={newMember.access}
+                onChange={(e) =>
+                  setNewMember({
+                    ...newMember,
+                    access: e.target.value as
+                      | "View Only"
+                      | "Edit Access",
+                  })
+                }
+                className="h-10 px-3 border border-neutral-300 rounded-lg text-sm bg-white"
+              >
+                <option value="View Only">View Only</option>
+                <option value="Edit Access">Edit Access</option>
+              </select>
+            </div>
+
+            <button
+              onClick={handleAddMember}
+              className="mt-4 inline-flex items-center gap-2 px-4 h-10 bg-neutral-900 text-white rounded-lg text-sm"
             >
-              <Route index element={<Dashboard />} />
-            </Route>
+              <Plus className="w-4 h-4" />
+              Add Member
+            </button>
+          </div>
+        )}
 
-            {/* Trips */}
-            <Route
-              path="/trips"
-              element={
-                <ProtectedRoute>
-                  <Layout />
-                </ProtectedRoute>
-              }
+        {/* Bottom Actions */}
+        <div className="mt-8 flex gap-3">
+          {!isEditingGroup && groupId && (
+            <button
+              onClick={() => setIsEditingGroup(true)}
+              className="flex-1 h-10 border border-neutral-300 rounded-lg text-sm font-medium"
             >
-              <Route index element={<MyTrips />} />
-            </Route>
+              Edit Group
+            </button>
+          )}
 
-            <Route
-              path="/trips/:id"
-              element={
-                <ProtectedRoute>
-                  <Layout />
-                </ProtectedRoute>
-              }
+          {isEditingGroup && (
+            <>
+              <button
+                onClick={handleCancelEdit}
+                className="flex-1 h-10 border border-neutral-300 rounded-lg text-sm"
+              >
+                Cancel
+              </button>
+
+              <button
+                onClick={handleSaveGroup}
+                className="flex-1 h-10 bg-neutral-900 text-white rounded-lg text-sm font-medium"
+              >
+                Save Group
+              </button>
+            </>
+          )}
+
+          {!groupId && (
+            <button
+              onClick={handleSaveGroup}
+              className="flex-1 h-10 bg-neutral-900 text-white rounded-lg text-sm font-medium"
             >
-              <Route index element={<TripWorkspace />} />
-            </Route>
-
-            {/* Four-screen trip creation flow */}
-            <Route
-              path="/create-trip"
-              element={
-                <ProtectedRoute>
-                  <Layout />
-                </ProtectedRoute>
-              }
-            >
-              <Route index element={<CreateTrip />} />
-            </Route>
-
-            <Route
-              path="/create-trip/1"
-              element={
-                <ProtectedRoute>
-                  <Layout />
-                </ProtectedRoute>
-              }
-            >
-              <Route index element={<CreateTrip />} />
-            </Route>
-
-            <Route
-              path="/create-trip/2"
-              element={
-                <ProtectedRoute>
-                  <Layout />
-                </ProtectedRoute>
-              }
-            >
-              <Route index element={<MyFamilyPreferences />} />
-            </Route>
-
-            <Route
-              path="/create-trip/3"
-              element={
-                <ProtectedRoute>
-                  <Layout />
-                </ProtectedRoute>
-              }
-            >
-              <Route index element={<InviteOtherMembers />} />
-            </Route>
-
-            <Route
-              path="/create-trip/4"
-              element={
-                <ProtectedRoute>
-                  <Layout />
-                </ProtectedRoute>
-              }
-            >
-              <Route index element={<ReviewSendInvitation />} />
-            </Route>
-
-            <Route
-              path="/invitation-sent"
-              element={
-                <ProtectedRoute>
-                  <Layout />
-                </ProtectedRoute>
-              }
-            >
-              <Route index element={<InvitationSentSuccess />} />
-            </Route>
-
-            {/* Member responses */}
-            <Route
-              path="/member-preference-submission"
-              element={
-                <ProtectedRoute>
-                  <Layout />
-                </ProtectedRoute>
-              }
-            >
-              <Route index element={<MemberPreferenceSubmission />} />
-            </Route>
-
-            <Route
-              path="/review-member-responses"
-              element={
-                <ProtectedRoute>
-                  <Layout />
-                </ProtectedRoute>
-              }
-            >
-              <Route index element={<ReviewMemberResponses />} />
-            </Route>
-
-            <Route
-              path="/trip-confirmation"
-              element={
-                <ProtectedRoute>
-                  <Layout />
-                </ProtectedRoute>
-              }
-            >
-              <Route index element={<TripConfirmation />} />
-            </Route>
-
-            {/* Family and Groups */}
-            <Route
-              path="/family"
-              element={
-                <ProtectedRoute>
-                  <Layout />
-                </ProtectedRoute>
-              }
-            >
-              <Route index element={<Family />} />
-              <Route path="create-group" element={<CreateGroup />} />
-              <Route path="group-review" element={<GroupDetails />} />
-              <Route path="group-details/:id" element={<GroupDetails />} />
-            </Route>
-
-            <Route
-              path="/groups"
-              element={
-                <ProtectedRoute>
-                  <Layout />
-                </ProtectedRoute>
-              }
-            >
-              <Route index element={<Placeholder title="Groups" />} />
-            </Route>
-
-            {/* Explore */}
-            <Route
-              path="/destinations"
-              element={
-                <ProtectedRoute>
-                  <Layout />
-                </ProtectedRoute>
-              }
-            >
-              <Route index element={<Destinations />} />
-            </Route>
-
-            <Route
-              path="/experiences"
-              element={
-                <ProtectedRoute>
-                  <Layout />
-                </ProtectedRoute>
-              }
-            >
-              <Route index element={<Experiences />} />
-            </Route>
-
-            <Route
-              path="/stay-travel"
-              element={
-                <ProtectedRoute>
-                  <Layout />
-                </ProtectedRoute>
-              }
-            >
-              <Route index element={<StayTravel />} />
-            </Route>
-
-            <Route
-              path="/planning-guide"
-              element={
-                <ProtectedRoute>
-                  <Layout />
-                </ProtectedRoute>
-              }
-            >
-              <Route index element={<PlanningGuide />} />
-            </Route>
-
-            {/* Itinerary */}
-            <Route
-              path="/itinerary"
-              element={
-                <ProtectedRoute>
-                  <Layout />
-                </ProtectedRoute>
-              }
-            >
-              <Route index element={<Placeholder title="Itinerary" />} />
-            </Route>
-
-            <Route
-              path="/itinerary/day-wise"
-              element={
-                <ProtectedRoute>
-                  <Layout />
-                </ProtectedRoute>
-              }
-            >
-              <Route index element={<DayWiseItinerary />} />
-            </Route>
-
-            <Route
-              path="/itinerary/member-review"
-              element={
-                <ProtectedRoute>
-                  <Layout />
-                </ProtectedRoute>
-              }
-            >
-              <Route index element={<MemberItineraryReview />} />
-            </Route>
-
-            <Route
-              path="/itinerary/change-requests"
-              element={
-                <ProtectedRoute>
-                  <Layout />
-                </ProtectedRoute>
-              }
-            >
-              <Route index element={<ItineraryChangeRequests />} />
-            </Route>
-
-            <Route
-              path="/itinerary/organiser-review"
-              element={
-                <ProtectedRoute>
-                  <Layout />
-                </ProtectedRoute>
-              }
-            >
-              <Route index element={<OrganiserReview />} />
-            </Route>
-
-            <Route
-              path="/itinerary/final-confirmation"
-              element={
-                <ProtectedRoute>
-                  <Layout />
-                </ProtectedRoute>
-              }
-            >
-              <Route index element={<FinalItineraryConfirmation />} />
-            </Route>
-
-            {/* Budget */}
-            <Route
-              path="/budget"
-              element={
-                <ProtectedRoute>
-                  <Layout />
-                </ProtectedRoute>
-              }
-            >
-              <Route index element={<Placeholder title="Budget" />} />
-            </Route>
-
-            <Route
-              path="/budget/create"
-              element={
-                <ProtectedRoute>
-                  <Layout />
-                </ProtectedRoute>
-              }
-            >
-              <Route index element={<CreateBudget />} />
-            </Route>
-
-            <Route
-              path="/budget/categories"
-              element={
-                <ProtectedRoute>
-                  <Layout />
-                </ProtectedRoute>
-              }
-            >
-              <Route index element={<ExpenseCategories />} />
-            </Route>
-
-            <Route
-              path="/budget/contributing-members"
-              element={
-                <ProtectedRoute>
-                  <Layout />
-                </ProtectedRoute>
-              }
-            >
-              <Route index element={<SelectContributingMembers />} />
-            </Route>
-
-            <Route
-              path="/budget/member-contributions"
-              element={
-                <ProtectedRoute>
-                  <Layout />
-                </ProtectedRoute>
-              }
-            >
-              <Route index element={<MemberContributions />} />
-            </Route>
-
-            <Route
-              path="/budget/review"
-              element={
-                <ProtectedRoute>
-                  <Layout />
-                </ProtectedRoute>
-              }
-            >
-              <Route index element={<BudgetReview />} />
-            </Route>
-
-            <Route
-              path="/budget/finalisation"
-              element={
-                <ProtectedRoute>
-                  <Layout />
-                </ProtectedRoute>
-              }
-            >
-              <Route index element={<BudgetFinalisation />} />
-            </Route>
-
-            {/* Tasks */}
-            <Route
-              path="/tasks/create"
-              element={
-                <ProtectedRoute>
-                  <Layout />
-                </ProtectedRoute>
-              }
-            >
-              <Route index element={<TaskCreation />} />
-            </Route>
-
-            <Route
-              path="/tasks/assign"
-              element={
-                <ProtectedRoute>
-                  <Layout />
-                </ProtectedRoute>
-              }
-            >
-              <Route index element={<AssignResponsibilities />} />
-            </Route>
-
-            <Route
-              path="/tasks/my-tasks"
-              element={
-                <ProtectedRoute>
-                  <Layout />
-                </ProtectedRoute>
-              }
-            >
-              <Route index element={<MyAssignedTasks />} />
-            </Route>
-
-            <Route
-              path="/tasks/progress"
-              element={
-                <ProtectedRoute>
-                  <Layout />
-                </ProtectedRoute>
-              }
-            >
-              <Route index element={<TaskProgress />} />
-            </Route>
-
-            <Route
-              path="/tasks/organiser-review"
-              element={
-                <ProtectedRoute>
-                  <Layout />
-                </ProtectedRoute>
-              }
-            >
-              <Route index element={<TaskOrganiserReview />} />
-            </Route>
-
-            {/* Travel Hub */}
-            <Route
-              path="/travel-hub"
-              element={
-                <ProtectedRoute>
-                  <Layout />
-                </ProtectedRoute>
-              }
-            >
-              <Route index element={<TravelHub />} />
-            </Route>
-
-            <Route
-              path="/travel-hub/confirmed-itinerary"
-              element={
-                <ProtectedRoute>
-                  <Layout />
-                </ProtectedRoute>
-              }
-            >
-              <Route index element={<ConfirmedItinerary />} />
-            </Route>
-
-            <Route
-              path="/travel-hub/documents"
-              element={
-                <ProtectedRoute>
-                  <Layout />
-                </ProtectedRoute>
-              }
-            >
-              <Route index element={<DocumentsTickets />} />
-            </Route>
-
-            <Route
-              path="/travel-hub/group-chat"
-              element={
-                <ProtectedRoute>
-                  <Layout />
-                </ProtectedRoute>
-              }
-            >
-              <Route index element={<GroupChat />} />
-            </Route>
-
-            <Route
-              path="/travel-hub/quick-actions"
-              element={
-                <ProtectedRoute>
-                  <Layout />
-                </ProtectedRoute>
-              }
-            >
-              <Route index element={<QuickActions />} />
-            </Route>
-
-            {/* Account */}
-            <Route
-              path="/notifications"
-              element={
-                <ProtectedRoute>
-                  <Layout />
-                </ProtectedRoute>
-              }
-            >
-              <Route index element={<NotificationsPage />} />
-            </Route>
-
-            <Route
-              path="/profile"
-              element={
-                <ProtectedRoute>
-                  <Layout />
-                </ProtectedRoute>
-              }
-            >
-              <Route index element={<ProfilePage />} />
-            </Route>
-
-            <Route
-              path="/settings"
-              element={
-                <ProtectedRoute>
-                  <Layout />
-                </ProtectedRoute>
-              }
-            >
-              <Route index element={<Settings />} />
-            </Route>
-
-            {/* Fallback */}
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </BrowserRouter>
-      </TooltipProvider>
-    </QueryClientProvider>
+              Create Group
+            </button>
+          )}
+        </div>
+      </div>
+    </div>
   );
 };
 
-export default App;
+export default GroupDetails;
