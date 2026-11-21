@@ -1,182 +1,376 @@
-import { useParams, useMemo } from "react-router-dom";
+
+import { useMemo, useState } from "react";
+import { Link, useParams } from "react-router-dom";
+import {
+  ArrowLeft,
+  ArrowRight,
+  CalendarDays,
+  CheckCircle2,
+  Clock,
+  Mail,
+  MapPin,
+  MessageCircle,
+  Users,
+  XCircle,
+} from "lucide-react";
 import { useTrip } from "@/contexts/TripContext";
-import { useNavigate } from "react-router-dom";
-import { toast } from "@/components/ui/use-toast";
-import { Users, Shield, Calendar, Mail } from "lucide-react";
+
+type InvitationItem = {
+  id: string;
+  member: string;
+  phone?: string;
+  email?: string;
+  status: "Pending" | "Accepted" | "Declined";
+  sentAt?: string;
+  groupName?: string;
+};
+
+const formatDate = (date?: string) => {
+  if (!date) return "Not available";
+
+  const parsedDate = new Date(date);
+
+  if (Number.isNaN(parsedDate.getTime())) {
+    return date;
+  }
+
+  return parsedDate.toLocaleDateString("en-IN", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  });
+};
 
 const InvitationTracking = () => {
-  const { currentTrip, invitedMembers, invitations } = useTrip();
-  const navigate = useNavigate();
-  const { id: tripId } = useParams();
+  const { id } = useParams<{ id: string }>();
+  const { trips } = useTrip();
 
-  // Get trip name from currentTrip or params
-  const tripName = currentTrip?.name || "Trip";
+  const [reminderMessage, setReminderMessage] = useState("");
 
-  // Calculate summary counts from invitations
-  const acceptedCount = invitations?.filter(
-    (inv) => inv.status === "Accepted"
-  ).length || 0;
+  const trip = trips.find((item) => item.id === id);
 
-  const pendingCount = invitations?.filter(
-    (inv) => inv.status === "Pending"
-  ).length || 0;
+  const invitations: InvitationItem[] = useMemo(() => {
+    if (!trip) return [];
 
-  const declinedCount = invitations?.filter(
-    (inv) => inv.status === "Declined"
-  ).length || 0;
+    if (trip.invitations && trip.invitations.length > 0) {
+      return trip.invitations.map((invitation) => ({
+        id: invitation.id,
+        member: invitation.member,
+        phone: invitation.phone,
+        email: invitation.email,
+        status: invitation.status,
+        sentAt: invitation.sentAt,
+        groupName: invitation.groupName,
+      }));
+    }
 
-  const peopleInvitedCount = invitedMembers?.length || 0;
+    return (trip.invitedMembers || []).map((member) => ({
+      id: member.id,
+      member: member.name,
+      phone: member.phone,
+      email: member.email,
+      status: "Pending",
+      sentAt: trip.invitationsSentAt,
+      groupName: member.groupName,
+    }));
+  }, [trip]);
 
-  // Get group names from invited members
-  const groupNames = useMemo(() => {
-    return invitedMembers
-      ?.map((member: any) => member.groupName)
-      ?.filter(Boolean) || [];
-  }, [invitedMembers]);
+  const acceptedCount = invitations.filter(
+    (item) => item.status === "Accepted"
+  ).length;
+
+  const pendingCount = invitations.filter(
+    (item) => item.status === "Pending"
+  ).length;
+
+  const declinedCount = invitations.filter(
+    (item) => item.status === "Declined"
+  ).length;
 
   const handleSendReminder = () => {
-    toast({
-      title: "Reminder Sent",
-      description: `Reminder sent to pending members for ${tripName}`,
-    });
+    setReminderMessage(
+      "Reminder simulated successfully. No actual message was sent."
+    );
+
+    window.setTimeout(() => {
+      setReminderMessage("");
+    }, 4000);
   };
 
+  if (!trip) {
+    return (
+      <div className="max-w-5xl mx-auto p-6">
+        <h2 className="text-xl font-semibold text-neutral-900 mb-2">
+          Trip not found
+        </h2>
+
+        <p className="text-sm text-neutral-500 mb-5">
+          We could not find this trip. Please return to your trips.
+        </p>
+
+        <Link
+          to="/trips"
+          className="inline-flex items-center gap-2 text-sm font-medium underline"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          Back to My Trips
+        </Link>
+      </div>
+    );
+  }
+
+  const destinations =
+    trip.proposedDestinations?.length > 0
+      ? trip.proposedDestinations.join(", ")
+      : trip.destination || "Destination not selected";
+
   return (
-    <div className="max-w-2xl mx-auto p-8">
-      <div className="bg-white border border-neutral-200 rounded-lg p-6">
-        <div className="flex items-center justify-between mb-6">
-          <h1 className="text-3xl font-bold text-neutral-900">
-            Invitations Sent Successfully
-          </h1>
-          <button
-            onClick={() => navigate("/trips")}
-            className="text-sm text-neutral-500 hover underline"
-          >
-            Back to Trips
-          </button>
-        </div>
+    <div className="max-w-5xl mx-auto space-y-6 pb-10">
 
-        <p className="text-neutral-600 mb-8">
-          Invitations were sent for {tripName}. Your family members can now review
-          the proposed destination and dates.
-        </div>
+      {/* Header */}
+      <div>
+        <Link
+          to="/trips"
+          className="inline-flex items-center gap-2 text-sm text-neutral-500 hover:text-neutral-900 mb-5"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          Back to My Trips
+        </Link>
 
-        {/* People Invited Card */}
-        <div className="bg-neutral-50 border border-neutral-200 rounded-lg p-6 mb-6">
-          <h3 className="text-sm font-medium text-neutral-500 mb-2">
-            People Invited
-          </h3>
-          <p className="text-3xl font-bold text-neutral-900">
-            {peopleInvitedCount}
-          </p>
-          <p className="text-sm text-neutral-500">
-            family members and friends invited
-          </p>
-        </div>
-
-        {/* Summary Cards */}
-        <div className="grid grid-cols-2 gap-4 mb-8">
-          <div className="bg-neutral-50 border border-neutral-200 rounded-lg p-4">
-            <p className="text-xs font-medium text-neutral-500">Accepted</p>
-            <p className="text-2xl font-bold text-neutral-900">{acceptedCount}</p>
+        <div className="flex items-start gap-3 mb-3">
+          <div className="w-12 h-12 rounded-xl bg-green-50 flex items-center justify-center">
+            <CheckCircle2 className="w-6 h-6 text-green-600" />
           </div>
-          <div className="bg-neutral-50 border border-neutral-200 rounded-lg p-4">
-            <p className="text-xs font-medium text-neutral-500">Pending</p>
-            <p className="text-2xl font-bold text-neutral-900">{pendingCount}</p>
-          </div>
-          <div className="bg-neutral-50 border border-neutral-200 rounded-lg p-4">
-            <p className="text-xs font-medium text-neutral-500">Declined</p>
-            <p className="text-2xl font-bold text-neutral-900">{declinedCount}</p>
-          </div>
-        </div>
 
-        {/* Invitation Status Table */}
-        <div className="bg-neutral-50 border border-neutral-200 rounded-lg p-6 mb-8">
-          <h3 className="text-sm font-medium text-neutral-500 mb-4">
-            Invitation Status
-          </h3>
-          {invitations?.length > 0 ? (
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b border-neutral-200">
-                    <th className="text-left text-neutral-500 py-2">Member Name</th>
-                    <th className="text-left text-neutral-500 py-2">Contact</th>
-                    <th className="text-left text-neutral-500 py-2">Status</th>
-                    <th className="text-left text-neutral-500 py-2">Date Sent</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {invitations?.map((invitation: any, index: number) => (
-                    <tr key={index} className="border-b border-neutral-200">
-                      <td className="py-2">
-                        <p className="font-medium text-neutral-900">
-                          {invitation.member || "—"}
-                        </p>
-                        <p className="text-xs text-neutral-500">
-                          {invitation.groupName || "—"}
-                        </p>
-                      </td>
-                      <td className="py-2">
-                        <p className="font-medium text-neutral-900">
-                          {invitation.phone || "—"}
-                        </p>
-                        <p className="text-xs text-neutral-500">
-                          {invitation.email || "—"}
-                        </p>
-                      </td>
-                      <td className="py-2">
-                        <span
-                          className={`px-2 py-1 rounded text-xs ${
-                            invitation.status === "Accepted"
-                              ? "bg-neutral-100 text-neutral-800"
-                              : invitation.status === "Declined"
-                                ? "bg-red-50 text-red-600"
-                                : "bg-neutral-100 text-neutral-800"
-                          }`}
-                        >
-                          {invitation.status || "Pending"}
-                        </span>
-                      </td>
-                      <td className="py-2">
-                        <p className="text-xs text-neutral-500">
-                          {invitation.sentAt ? new Date(invitation.sentAt).toLocaleDateString() : "—"}
-                        </p>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          ) : (
-            <p className="text-neutral-500 text-center py-8">
-              No invitations recorded yet
+          <div>
+            <h1 className="text-2xl font-bold text-neutral-900">
+              Invitations Sent Successfully
+            </h1>
+
+            <p className="text-sm text-neutral-500 mt-1">
+              Your trip invitations have been recorded.
             </p>
-          )}
+          </div>
         </div>
 
-        {/* Bottom Actions */}
-        <div className="flex gap-3 pt-8 border-t border-neutral-200">
+        <p className="text-sm text-neutral-600">
+          Invitations were sent for{" "}
+          <span className="font-semibold text-neutral-900">
+            {trip.name}
+          </span>
+          . Your family members can now review the proposed destination and
+          dates.
+        </p>
+      </div>
+
+      {/* Trip Summary */}
+      <section className="rounded-xl border border-neutral-200 p-5">
+        <h2 className="text-base font-semibold text-neutral-900 mb-4">
+          Trip Summary
+        </h2>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="flex items-start gap-3">
+            <MapPin className="w-5 h-5 text-neutral-500 mt-0.5" />
+            <div>
+              <p className="text-xs text-neutral-500">Destination</p>
+              <p className="text-sm font-medium text-neutral-900">
+                {destinations}
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-start gap-3">
+            <CalendarDays className="w-5 h-5 text-neutral-500 mt-0.5" />
+            <div>
+              <p className="text-xs text-neutral-500">Travel Dates</p>
+              <p className="text-sm font-medium text-neutral-900">
+                {formatDate(trip.startDate)} – {formatDate(trip.endDate)}
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-start gap-3">
+            <Users className="w-5 h-5 text-neutral-500 mt-0.5" />
+            <div>
+              <p className="text-xs text-neutral-500">Total Invited</p>
+              <p className="text-sm font-medium text-neutral-900">
+                {invitations.length} members
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Invitation Statistics */}
+      <section>
+        <h2 className="text-base font-semibold text-neutral-900 mb-3">
+          Invitation Overview
+        </h2>
+
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          <div className="rounded-xl border border-neutral-200 p-4">
+            <p className="text-xs text-neutral-500 mb-2">Invited</p>
+            <p className="text-2xl font-bold text-neutral-900">
+              {invitations.length}
+            </p>
+          </div>
+
+          <div className="rounded-xl border border-neutral-200 p-4">
+            <p className="text-xs text-neutral-500 mb-2">Accepted</p>
+            <p className="text-2xl font-bold text-green-600">
+              {acceptedCount}
+            </p>
+          </div>
+
+          <div className="rounded-xl border border-neutral-200 p-4">
+            <p className="text-xs text-neutral-500 mb-2">Pending</p>
+            <p className="text-2xl font-bold text-amber-600">
+              {pendingCount}
+            </p>
+          </div>
+
+          <div className="rounded-xl border border-neutral-200 p-4">
+            <p className="text-xs text-neutral-500 mb-2">Declined</p>
+            <p className="text-2xl font-bold text-red-600">
+              {declinedCount}
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* People Invited */}
+      <section className="rounded-xl border border-neutral-200 overflow-hidden">
+        <div className="p-5 border-b border-neutral-200">
+          <h2 className="text-base font-semibold text-neutral-900">
+            People Invited
+          </h2>
+
+          <p className="text-sm text-neutral-500 mt-1">
+            Track the responses of your invited members.
+          </p>
+        </div>
+
+        {invitations.length === 0 ? (
+          <div className="p-8 text-center">
+            <Users className="w-8 h-8 text-neutral-300 mx-auto mb-3" />
+
+            <p className="text-sm font-medium text-neutral-800">
+              No invitations found
+            </p>
+
+            <p className="text-sm text-neutral-500 mt-1">
+              No members were recorded for this trip.
+            </p>
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm text-left">
+              <thead className="bg-neutral-50 text-neutral-500">
+                <tr>
+                  <th className="px-5 py-3 font-medium">Member Name</th>
+                  <th className="px-5 py-3 font-medium">Contact</th>
+                  <th className="px-5 py-3 font-medium">Status</th>
+                  <th className="px-5 py-3 font-medium">Date Sent</th>
+                </tr>
+              </thead>
+
+              <tbody>
+                {invitations.map((invitation) => (
+                  <tr
+                    key={invitation.id}
+                    className="border-t border-neutral-100"
+                  >
+                    <td className="px-5 py-4">
+                      <p className="font-medium text-neutral-900">
+                        {invitation.member}
+                      </p>
+
+                      {invitation.groupName && (
+                        <p className="text-xs text-neutral-500 mt-1">
+                          {invitation.groupName}
+                        </p>
+                      )}
+                    </td>
+
+                    <td className="px-5 py-4 text-neutral-600">
+                      {invitation.phone ||
+                        invitation.email ||
+                        "Not provided"}
+                    </td>
+
+                    <td className="px-5 py-4">
+                      {invitation.status === "Accepted" ? (
+                        <span className="inline-flex items-center gap-1 text-green-700">
+                          <CheckCircle2 className="w-4 h-4" />
+                          Accepted
+                        </span>
+                      ) : invitation.status === "Declined" ? (
+                        <span className="inline-flex items-center gap-1 text-red-700">
+                          <XCircle className="w-4 h-4" />
+                          Declined
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1 text-amber-700">
+                          <Clock className="w-4 h-4" />
+                          Pending
+                        </span>
+                      )}
+                    </td>
+
+                    <td className="px-5 py-4 text-neutral-600">
+                      {formatDate(invitation.sentAt)}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </section>
+
+      {/* Reminder Feedback */}
+      {reminderMessage && (
+        <div className="rounded-lg border border-green-200 bg-green-50 p-3 text-sm text-green-800">
+          {reminderMessage}
+        </div>
+      )}
+
+      {/* Actions */}
+      <div className="flex flex-col sm:flex-row gap-3 justify-between">
+        <Link
+          to="/trips"
+          className="inline-flex items-center justify-center gap-2 rounded-lg border border-neutral-300 px-5 py-3 text-sm font-medium text-neutral-700 hover:bg-neutral-50"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          Back to My Trips
+        </Link>
+
+        <div className="flex flex-col sm:flex-row gap-3">
           <button
-            onClick={() => navigate("/trips")}
-            className="flex-1 px-4 h-10 text-sm font-medium text-neutral-600 hover:text-neutral-900 transition-colors"
-          >
-            Back to My Trips
-          </button>
-          <button
+            type="button"
             onClick={handleSendReminder}
-            className="flex-1 px-4 h-10 bg-neutral-900 text-white text-sm font-medium rounded-lg hover:bg-neutral-800 transition-colors"
+            disabled={pendingCount === 0}
+            className="inline-flex items-center justify-center gap-2 rounded-lg border border-neutral-300 px-5 py-3 text-sm font-medium text-neutral-700 hover:bg-neutral-50 disabled:opacity-50 disabled:cursor-not-allowed"
           >
+            <MessageCircle className="w-4 h-4" />
             Send Reminder
           </button>
-          <button
-            onClick={() => navigate(`/trips/${tripId}`)}
-            className="flex-1 px-4 h-10 bg-neutral-900 text-white text-sm font-medium rounded-lg hover:bg-neutral-800 transition-colors"
+
+          <Link
+            to={`/trips/${trip.id}`}
+            className="inline-flex items-center justify-center gap-2 rounded-lg bg-neutral-900 px-5 py-3 text-sm font-medium text-white hover:bg-neutral-800"
           >
             Go to Trip Workspace
-          </button>
+            <ArrowRight className="w-4 h-4" />
+          </Link>
         </div>
       </div>
+
+      <p className="text-xs text-neutral-400">
+        Prototype demonstration: invitation reminders are simulated. No
+        external messages are sent.
+      </p>
     </div>
   );
 };
