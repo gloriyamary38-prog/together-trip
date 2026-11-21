@@ -8,6 +8,7 @@ import {
   Clock,
   Mail,
   MapPin,
+  MessageCircle,
   Users,
 } from "lucide-react";
 import { useTrip } from "@/contexts/TripContext";
