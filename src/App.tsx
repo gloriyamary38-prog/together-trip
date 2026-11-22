@@ -63,7 +63,7 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
 };
 
 const App = () => {
-  const { groups, createGroup } = useTrip();
+  const { isAuthenticated } = useTrip();
 
   return (
     <QueryClientProvider client={queryClient}>
@@ -105,112 +105,4 @@ const App = () => {
             <Route path="/trips/:id/invitations" element={<ProtectedRoute><Layout /><InvitationTracking /></ProtectedRoute}>
               <Route index element={<InvitationTracking />} />
             </Route>
-            <Route path="/member-preference-submission" element={<ProtectedRoute><Layout /></ProtectedRoute>}>
-              <Route index element={<MemberPreferenceSubmission />} />
-            </Route>
-            <Route path="/review-member-responses" element={<ProtectedRoute><Layout /></ProtectedRoute>}>
-              <Route index element={<ReviewMemberResponses />} />
-            </Route>
-            <Route path="/trip-confirmation" element={<ProtectedRoute><Layout /></ProtectedRoute>}>
-              <Route index element={<TripConfirmation />} />
-            </Route>
-            <Route path="/destinations" element={<ProtectedRoute><Layout /></ProtectedRoute>}>
-              <Route index element={<Destinations />} />
-            </Route>
-            <Route path="/experiences" element={<ProtectedRoute><Layout /></ProtectedRoute>}>
-              <Route index element={<Experiences />} />
-            </Route>
-            <Route path="/stay-travel" element={<ProtectedRoute><Layout /></ProtectedRoute>}>
-              <Route index element={<StayTravel />} />
-            </Route>
-            <Route path="/planning-guide" element={<ProtectedRoute><Layout /></ProtectedRoute>}>
-              <Route index element={<PlanningGuide />} />
-            </Route>
-            {/* Itinerary Workflow */}
-            <Route path="/itinerary" element={<ProtectedRoute><Layout /><ItineraryLanding /></ProtectedRoute}>
-              <Route index element={<ItineraryLanding />} />
-            </Route>
-            <Route path="/itinerary/workspace/:id" element={<ProtectedRoute><Layout /><ItineraryWorkspace /></ProtectedRoute}>
-              <Route index element={<ItineraryWorkspace />} />
-            </Route>
-            <Route path="/itinerary/member-review" element={<ProtectedRoute><Layout /></ProtectedRoute}>
-              <Route index element={<MemberItineraryReview />} />
-            </Route>
-            <Route path="/itinerary/change-requests" element={<ProtectedRoute><Layout /></ProtectedRoute}>
-              <Route index element={<ItineraryChangeRequests />} />
-            </Route>
-            <Route path="/itinerary/organiser-review" element={<ProtectedRoute><Layout /></ProtectedRoute}>
-              <Route index element={<OrganiserReview />} />
-            </Route>
-            <Route path="/itinerary/final-confirmation" element={<ProtectedRoute><Layout /></ProtectedRoute}>
-              <Route index element={<FinalItineraryConfirmation />} />
-            </Route>
-            <Route path="/budget" element={<ProtectedRoute><Layout /></ProtectedRoute}>
-              <Route index element={<Placeholder title="Budget" />} />
-            </Route>
-            <Route path="/budget/create" element={<ProtectedRoute><Layout /></ProtectedRoute>}>
-              <Route index element={<CreateBudget />} />
-            </Route>
-            <Route path="/budget/categories" element={<ProtectedRoute><Layout /></ProtectedRoute>}>
-              <Route index element={<ExpenseCategories />} />
-            </Route>
-            <Route path="/budget/contributing-members" element={<ProtectedRoute><Layout /></ProtectedRoute>}>
-              <Route index element={<SelectContributingMembers />} />
-            </Route>
-            <Route path="/budget/member-contributions" element={<ProtectedRoute><Layout /></ProtectedRoute>}>
-              <Route index element={<MemberContributions />} />
-            </Route>
-            <Route path="/budget/review" element={<ProtectedRoute><Layout /></ProtectedRoute>}>
-              <Route index element={<BudgetReview />} />
-            </Route>
-            <Route path="/budget/finalisation" element={<ProtectedRoute><Layout /></ProtectedRoute>}>
-              <Route index element={<BudgetFinalisation />} />
-            </Route>
-            <Route path="/tasks/create" element={<ProtectedRoute><Layout /></ProtectedRoute>}>
-              <Route index element={<TaskCreation />} />
-            </Route>
-            <Route path="/tasks/assign" element={<ProtectedRoute><Layout /></ProtectedRoute>}>
-              <Route index element={<AssignResponsibilities />} />
-            </Route>
-            <Route path="/tasks/my-tasks" element={<ProtectedRoute><Layout /></ProtectedRoute>}>
-              <Route index element<MyAssignedTasks /> />
-            </Route>
-            <Route path="/tasks/progress" element={<ProtectedRoute><Layout /></ProtectedRoute>}>
-              <Route index element={<TaskProgress />} />
-            </Route>
-            <Route path="/tasks/organiser-review" element={<ProtectedRoute><Layout /></ProtectedRoute}>
-              <Route index element={<TaskOrganiserReview />} />
-            </Route>
-            <Route path="/travel-hub" element={<ProtectedRoute><Layout /></ProtectedRoute>}>
-              <Route index element={<TravelHub />} />
-            </Route>
-            <Route path="/travel-hub/confirmed-itinerary" element={<ProtectedRoute><Layout /></ProtectedRoute>}>
-              <Route index element={<ConfirmedItinerary />} />
-            </Route>
-            <Route path="/travel-hub/documents" element={<ProtectedRoute><Layout /></ProtectedRoute>}>
-              <Route index element={<DocumentsTickets />} />
-            </Route>
-            <Route path="/travel-hub/group-chat" element={<ProtectedRoute><Layout /></ProtectedRoute>}>
-              <Route index element={<GroupChat />} />
-            </Route>
-            <Route path="/travel-hub/quick-actions" element={<ProtectedRoute><Layout /></ProtectedRoute>}>
-              <Route index element={<QuickActions />} />
-            </Route>
-            <Route path="/notifications" element={<ProtectedRoute><Layout /></ProtectedRoute>}>
-              <Route index element={<NotificationsPage />} />
-            </Route>
-            <Route path="/profile" element={<ProtectedRoute><Layout /></ProtectedRoute>}>
-              <Route index element={<ProfilePage />} />
-            </Route>
-            <Route path="/settings" element={<ProtectedRoute><Layout /></ProtectedRoute>}>
-              <Route index element={<Settings />} />
-            </Route>
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </TooltipProvider>
-      </QueryClientProvider>
-    </BrowserRouter>
-  );
-};
-
-export default App;
+            <Route path="/member-preference-submission" element={<ProtectedRoute><Layout /></ProtectedRoute}>\n              <Route index element={<MemberPreferenceSubmission />} />\n            </Route>\n            <Route path=\"/review-member-responses\" element={<ProtectedRoute><Layout /></ProtectedRoute}>\n              <Route index element={<ReviewMemberResponses />} />\n            </Route>\n            <Route path=\"/trip-confirmation\" element={<ProtectedRoute><Layout /></ProtectedRoute}>\n              <Route index element={<TripConfirmation />} />\n            </Route>\n            <Route path=\"/destinations\" element={<ProtectedRoute><Layout /></ProtectedRoute}>\n              <Route index element={<Destinations />} />\n            </Route>\n            <Route path=\"/experiences\" element={<ProtectedRoute><Layout /></ProtectedRoute}>\n              <Route index element={<Experiences />} />\n            </Route>\n            <Route path=\"/stay-travel\" element={<ProtectedRoute><Layout /></ProtectedRoute}>\n              <Route index element={<StayTravel />} />\n            </Route>\n            <Route path=\"/planning-guide\" element={<ProtectedRoute><Layout /></ProtectedRoute}>\n              <Route index element={<PlanningGuide />} />\n            </Route>\n            {/* Itinerary Workflow */}\n            <Route path=\"/itinerary\" element={<ProtectedRoute><Layout /><ItineraryLanding /></ProtectedRoute}>\n              <Route index element={<ItineraryLanding />} />\n            </Route>\n            <Route path=\"/itinerary/workspace/:id\" element={<ProtectedRoute><Layout /><ItineraryWorkspace /></ProtectedRoute}>\n              <Route index element={<ItineraryWorkspace />} />\n            </Route>\n            <Route path=\"/itinerary/member-review\" element={<ProtectedRoute><Layout /></ProtectedRoute}>\n              <Route index element={<MemberItineraryReview />} />\n            </Route>\n            <Route path=\"/itinerary/change-requests\" element={<ProtectedRoute><Layout /></ProtectedRoute}>\n              <Route index element={<ItineraryChangeRequests />} />\n            </Route>\n            <Route path=\"/itinerary/organiser-review\" element={<ProtectedRoute><Layout /></ProtectedRoute}>\n              <Route index element={<OrganiserReview />} />\n            </Route>\n            <Route path=\"/itinerary/final-confirmation\" element={<ProtectedRoute><Layout /></ProtectedRoute}>\n              <Route index element={<FinalItineraryConfirmation />} />\n            </Route>\n            <Route path=\"/budget\" element={<ProtectedRoute><Layout /></ProtectedRoute}>\n              <Route index element={<Placeholder title=\"Budget\" />} />\n            </Route>\n            <Route path=\"/budget/create\" element={<ProtectedRoute><Layout /></ProtectedRoute}>\n              <Route index element={<CreateBudget />} />\n            </Route>\n            <Route path=\"/budget/categories\" element={<ProtectedRoute><Layout /></ProtectedRoute}>\n              <Route index element={<ExpenseCategories />} />\n            </Route>\n            <Route path=\"/budget/contributing-members\" element={<ProtectedRoute><Layout /></ProtectedRoute}>\n              <Route index element={<SelectContributingMembers />} />\n            </Route>\n            <Route path=\"/budget/member-contributions\" element={<ProtectedRoute><Layout /></ProtectedRoute}>\n              <Route index element={<MemberContributions />} />\n            </Route>\n            <Route path=\"/budget/review\" element={<ProtectedRoute><Layout /></ProtectedRoute}>\n              <Route index element={<BudgetReview />} />\n            </Route>\n            <Route path=\"/budget/finalisation\" element={<ProtectedRoute><Layout /></ProtectedRoute}>\n              <Route index element={<BudgetFinalisation />} />\n            </Route>\n            <Route path=\"/tasks/create\" element={<ProtectedRoute><Layout /></ProtectedRoute}>\n              <Route index element={<TaskCreation />} />\n            </Route>\n            <Route path=\"/tasks/assign\" element={<ProtectedRoute><Layout /></ProtectedRoute}>\n              <Route index element={<AssignResponsibilities />} />\n            </Route>\n            <Route path=\"/tasks/my-tasks\" element={<ProtectedRoute><Layout /></ProtectedRoute}>\n              <Route index element={<MyAssignedTasks />} />\n            </Route>\n            <Route path=\"/tasks/progress\" element={<ProtectedRoute><Layout /></ProtectedRoute}>\n              <Route index element={<TaskProgress />} />\n            </Route>\n            <Route path=\"/tasks/organiser-review\" element={<ProtectedRoute><Layout /></ProtectedRoute}>\n              <Route index element={<TaskOrganiserReview />} />\n            </Route>\n            <Route path=\"/travel-hub\" element={<ProtectedRoute><Layout /></ProtectedRoute}>\n              <Route index element={<TravelHub />} />\n            </Route>\n            <Route path=\"/travel-hub/confirmed-itinerary\" element={<ProtectedRoute><Layout /></ProtectedRoute}>\n              <Route index element={<ConfirmedItinerary />} />\n            </Route>\n            <Route path=\"/travel-hub/documents\" element={<ProtectedRoute><Layout /></ProtectedRoute}>\n              <Route index element={<DocumentsTickets />} />\n            </Route>\n            <Route path=\"/travel-hub/group-chat\" element={<ProtectedRoute><Layout /></ProtectedRoute}>\n              <Route index element={<GroupChat />} />\n            </Route>\n            <Route path=\"/travel-hub/quick-actions\" element={<ProtectedRoute><Layout /></ProtectedRoute}>\n              <Route index element={<QuickActions />} />\n            </Route>\n            <Route path=\"/notifications\" element={<ProtectedRoute><Layout /></ProtectedRoute}>\n              <Route index element={<NotificationsPage />} />\n            </Route>\n            <Route path=\"/profile\" element={<ProtectedRoute><Layout /></ProtectedRoute}>\n              <Route index element={<ProfilePage />} />\n            </Route>\n            <Route path=\"/settings\" element={<ProtectedRoute><Layout /></ProtectedRoute}>\n              <Route index element={<Settings />} />\n            </Route>\n            <Route path=\"*\" element={<NotFound />} />\n          </Routes>\n        </TooltipProvider>\n      </QueryClientProvider>\n    </BrowserRouter>\n  );\n};\n\nexport default App;
