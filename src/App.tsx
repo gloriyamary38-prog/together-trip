@@ -71,12 +71,10 @@ const App = () => {
             <Route path="/" element={<SignIn />} />
             <Route path="/sign-in" element={<SignIn />} />
             <Route path="/verify-otp" element={<OtpVerification />} />
-            <Route
-              path="/home"
-              element={<ProtectedRoute><Layout /></ProtectedRoute>}
+            <Route path="/home" element={<ProtectedRoute><Layout /></ProtectedRoute}}>
               <Route index element={<Dashboard />} />
             </Route>
-            <Route path="/trips" element={<ProtectedRoute><Layout /></ProtectedRoute}>
+            <Route path="/trips" element={<ProtectedRoute><Layout /></ProtectedRoute}}>
               <Route index element={<MyTrips />} />
             </Route>
             <Route path="/trips/:id" element={<ProtectedRoute><Layout /></ProtectedRoute}}>
