@@ -1,3 +1,4 @@
+
 import { Link } from "react-router-dom";
 import {
   ArrowRight,
@@ -6,12 +7,10 @@ import {
   Image as ImageIcon,
   MapPin,
   Plus,
-  Search,
   Users,
 } from "lucide-react";
 
 import { useTrip } from "@/contexts/TripContext";
-import { ItineraryLanding, ItineraryWorkspace } from "@/pages";
 
 const formatDate = (date?: string) => {
   if (!date) return "—";
@@ -43,6 +42,30 @@ const getTravellerCount = (trip: any) => {
   return familyCount + invitedCount;
 };
 
+// Explore and Plan cards
+const exploreCards = [
+  {
+    title: "Destinations",
+    description: "Discover places for your next family journey.",
+    icon: Compass,
+  },
+  {
+    title: "Experiences",
+    description: "Explore activities and experiences.",
+    icon: MapPin,
+  },
+  {
+    title: "Stay & Travel",
+    description: "Explore accommodation and travel options.",
+    icon: Calendar,
+  },
+  {
+    title: "Planning Guide",
+    description: "Get guidance for planning your trip.",
+    icon: Users,
+  },
+];
+
 const Dashboard = () => {
   const { trips } = useTrip();
 
@@ -62,6 +85,7 @@ const Dashboard = () => {
 
   return (
     <div className="max-w-5xl">
+      {/* Welcome and Search */}
       <div className="mb-6">
         <h1 className="text-3xl font-bold text-neutral-900 mb-2">
           Plan memorable journeys together with your family.
@@ -71,9 +95,14 @@ const Dashboard = () => {
           Discover destinations, plan your itinerary, share choices and
           create memorable family journeys.
         </p>
+
         <div className="flex items-center gap-2">
           <div className="relative flex-1">
-            <img src="/search.svg" alt="Search" className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400" />
+            <img
+              src="/search.svg"
+              alt="Search"
+              className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400"
+            />
 
             <input
               type="text"
@@ -88,6 +117,7 @@ const Dashboard = () => {
         </div>
       </div>
 
+      {/* Explore and Plan */}
       <div className="flex items-start justify-between mb-4">
         <div>
           <h2 className="text-lg font-semibold text-neutral-900">
@@ -107,6 +137,7 @@ const Dashboard = () => {
           return (
             <button
               key={card.title}
+              type="button"
               className="flex items-center gap-4 p-4 border border-neutral-200 rounded-lg text-left hover:border-neutral-300 transition-colors"
             >
               <div className="w-11 h-11 rounded-lg bg-neutral-100 flex items-center justify-center flex-shrink-0">
@@ -114,9 +145,13 @@ const Dashboard = () => {
               </div>
 
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-semibold text-neutral-900">{card.title}</p>
+                <p className="text-sm font-semibold text-neutral-900">
+                  {card.title}
+                </p>
 
-                <p className="text-sm text-neutral-500">{card.description}</p>
+                <p className="text-sm text-neutral-500">
+                  {card.description}
+                </p>
               </div>
 
               <ArrowRight className="w-4 h-4 text-neutral-400 flex-shrink-0" />
@@ -125,12 +160,14 @@ const Dashboard = () => {
         })}
       </div>
 
+      {/* Create Trip */}
       <div className="flex justify-center mb-8">
         <Link
           to="/create-trip"
           className="inline-flex items-center gap-2 px-6 py-3 bg-neutral-900 text-white text-sm font-medium rounded-lg hover:bg-neutral-800 transition-colors"
         >
-          <Plus className="w-4 h-4" /> Create a Trip
+          <Plus className="w-4 h-4" />
+          Create a Trip
         </Link>
       </div>
 
@@ -151,7 +188,8 @@ const Dashboard = () => {
             to="/itinerary"
             className="inline-flex items-center gap-2 px-4 py-2 border border-neutral-300 rounded-lg text-sm font-medium text-neutral-700 hover:bg-neutral-50 transition-colors"
           >
-            <Calendar className="w-4 h-4" /> Itinerary
+            <Calendar className="w-4 h-4" />
+            Itinerary
           </Link>
         </div>
       </div>
@@ -214,7 +252,8 @@ const Dashboard = () => {
                     <div className="flex items-center gap-2 text-sm text-neutral-600">
                       <Calendar className="w-4 h-4 shrink-0" />
                       <span>
-                        {formatDate(trip.startDate)} – {formatDate(trip.endDate)}
+                        {formatDate(trip.startDate)} –{" "}
+                        {formatDate(trip.endDate)}
                       </span>
                     </div>
 
@@ -257,119 +296,119 @@ const Dashboard = () => {
             })}
           </div>
         )}
+      </section>
 
-        {/* Past Trips */}
-        <section className="mb-8">
-          <div className="flex items-center justify-between mb-3">
-            <h2 className="text-lg font-semibold text-neutral-900">
-              Past Trips
-            </h2>
+      {/* Past Trips */}
+      <section className="mb-8">
+        <div className="flex items-center justify-between mb-3">
+          <h2 className="text-lg font-semibold text-neutral-900">
+            Past Trips
+          </h2>
 
-            <Link
-              to="/trips"
-              className="text-sm font-medium text-neutral-600 hover:text-neutral-900 underline"
-            >
-              View All
-            </Link>
-          </div>
+          <Link
+            to="/trips"
+            className="text-sm font-medium text-neutral-600 hover:text-neutral-900 underline"
+          >
+            View All
+          </Link>
+        </div>
 
-          {pastTrips.length === 0 ? (
-            <p className="text-sm text-neutral-500">
-              Your completed trips will appear here.
-            </p>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {pastTrips.map((trip) => {
-                return (
-                  <Link
-                    key={trip.id}
-                    to={`/trips/${trip.id}`}
-                    className="flex items-center gap-4 p-4 border border-neutral-200 rounded-lg text-left hover:border-neutral-300 transition-colors"
-                  >
-                    <div className="w-11 h-11 rounded-lg bg-neutral-100 flex items-center justify-center flex-shrink-0">
-                      <ImageIcon className="w-5 h-5 text-neutral-400" />
-                    </div>
-
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-semibold text-neutral-900">{trip.name}</p>
-
-                      <p className="text-sm text-neutral-500">
-                        {getDestinations(trip)}
-                      </p>
-                    </div>
-
-                    <ArrowRight className="w-4 h-4 text-neutral-400 flex-shrink-0" />
-                  </Link>
-                );
-              })}
-            </div>
-          )}
-        </section>
-
-        {/* Groups */}
-        <section>
-          <div className="flex items-center justify-between mb-3">
-            <h2 className="text-lg font-semibold text-neutral-900">
-              Groups
-            </h2>
-
-            <Link
-              to="/groups"
-              className="text-sm font-medium text-neutral-600 hover:text-neutral-900 underline"
-            >
-              View All
-            </Link>
-          </div>
-
-          <p className="text-sm text-neutral-500 mb-4">
-            Plan and travel with the people who matter most.
+        {pastTrips.length === 0 ? (
+          <p className="text-sm text-neutral-500">
+            Your completed trips will appear here.
           </p>
-
+        ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <Link
-              to="/family"
-              className="flex items-center gap-4 p-4 border border-neutral-200 rounded-lg text-left hover:border-neutral-300 transition-colors"
-            >
-              <div className="w-11 h-11 rounded-lg bg-neutral-100 flex items-center justify-center flex-shrink-0">
-                <Users className="w-5 h-5 text-neutral-600" />
-              </div>
+            {pastTrips.map((trip) => (
+              <Link
+                key={trip.id}
+                to={`/trips/${trip.id}`}
+                className="flex items-center gap-4 p-4 border border-neutral-200 rounded-lg text-left hover:border-neutral-300 transition-colors"
+              >
+                <div className="w-11 h-11 rounded-lg bg-neutral-100 flex items-center justify-center flex-shrink-0">
+                  <ImageIcon className="w-5 h-5 text-neutral-400" />
+                </div>
 
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-semibold text-neutral-900">
-                  Family
-                </p>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-semibold text-neutral-900">
+                    {trip.name}
+                  </p>
 
-                <p className="text-sm text-neutral-500">
-                  View family members
-                </p>
-              </div>
+                  <p className="text-sm text-neutral-500">
+                    {getDestinations(trip)}
+                  </p>
+                </div>
 
-              <ArrowRight className="w-4 h-4 text-neutral-400 flex-shrink-0" />
-            </Link>
-
-            <Link
-              to="/groups"
-              className="flex items-center gap-4 p-4 border border-neutral-200 rounded-lg text-left hover:border-neutral-300 transition-colors"
-            >
-              <div className="w-11 h-11 rounded-lg bg-neutral-100 flex items-center justify-center flex-shrink-0">
-                <Users className="w-5 h-5 text-neutral-600" />
-              </div>
-
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-semibold text-neutral-900">
-                  Friends
-                </p>
-
-                <p className="text-sm text-neutral-500">
-                  View groups
-                </p>
-              </div>
-
-              <ArrowRight className="w-4 h-4 text-neutral-400 flex-shrink-0" />
-            </Link>
+                <ArrowRight className="w-4 h-4 text-neutral-400 flex-shrink-0" />
+              </Link>
+            ))}
           </div>
-        </section>
-      </div>
+        )}
+      </section>
+
+      {/* Groups */}
+      <section>
+        <div className="flex items-center justify-between mb-3">
+          <h2 className="text-lg font-semibold text-neutral-900">
+            Groups
+          </h2>
+
+          <Link
+            to="/groups"
+            className="text-sm font-medium text-neutral-600 hover:text-neutral-900 underline"
+          >
+            View All
+          </Link>
+        </div>
+
+        <p className="text-sm text-neutral-500 mb-4">
+          Plan and travel with the people who matter most.
+        </p>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <Link
+            to="/family"
+            className="flex items-center gap-4 p-4 border border-neutral-200 rounded-lg text-left hover:border-neutral-300 transition-colors"
+          >
+            <div className="w-11 h-11 rounded-lg bg-neutral-100 flex items-center justify-center flex-shrink-0">
+              <Users className="w-5 h-5 text-neutral-600" />
+            </div>
+
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-semibold text-neutral-900">
+                Family
+              </p>
+
+              <p className="text-sm text-neutral-500">
+                View family members
+              </p>
+            </div>
+
+            <ArrowRight className="w-4 h-4 text-neutral-400 flex-shrink-0" />
+          </Link>
+
+          <Link
+            to="/groups"
+            className="flex items-center gap-4 p-4 border border-neutral-200 rounded-lg text-left hover:border-neutral-300 transition-colors"
+          >
+            <div className="w-11 h-11 rounded-lg bg-neutral-100 flex items-center justify-center flex-shrink-0">
+              <Users className="w-5 h-5 text-neutral-600" />
+            </div>
+
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-semibold text-neutral-900">
+                Friends
+              </p>
+
+              <p className="text-sm text-neutral-500">
+                View groups
+              </p>
+            </div>
+
+            <ArrowRight className="w-4 h-4 text-neutral-400 flex-shrink-0" />
+          </Link>
+        </div>
+      </section>
     </div>
   );
 };
