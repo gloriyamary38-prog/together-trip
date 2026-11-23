@@ -1,18 +1,29 @@
+
 import { useEffect, useState } from "react";
-import { useTrip, useParams } from "react-router-dom";
-import { useNavigate } from "react-router-dom";
-import { Link } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
+import { useTrip } from "@/contexts/TripContext";
 import { useToast } from "@/components/ui/use-toast";
 import {
   ArrowLeft,
   Calendar,
   Check,
-  Clock,
-  Users,
   Plus,
-  Mail,
   Shield,
 } from "lucide-react";
+
+type Activity = {
+  day: number;
+  activity: string;
+  place: string;
+  startTime: string;
+  endTime: string;
+  description: string;
+};
+
+type Note = {
+  day: number;
+  note: string;
+};
 
 const ItineraryWorkspace = () => {
   const { id: tripId } = useParams();
@@ -22,13 +33,23 @@ const ItineraryWorkspace = () => {
 
   const trip = trips.find((item) => item.id === tripId);
 
+  const [currentDay, setCurrentDay] = useState(1);
+  const [activities, setActivities] = useState<Activity[]>([]);
+  const [notes, setNotes] = useState<Note[]>([]);
+  const [noteInput, setNoteInput] = useState("");
+
+  useEffect(() => {
+    if (!trip) {
+      toast({
+        title: "Trip not found",
+        description: "The selected trip could not be located.",
+        variant: "destructive",
+      });
+      navigate("/trips");
+    }
+  }, [trip, navigate, toast]);
+
   if (!trip) {
-    toast({
-      title: "Trip not found",
-      description: "The selected trip could not be located.",
-      variant: "destructive",
-    });
-    navigate("/trips");
     return null;
   }
 
@@ -37,11 +58,14 @@ const ItineraryWorkspace = () => {
       ? trip.proposedDestinations.join(", ")
       : trip.destination || "—";
 
-  const formatDate = (date) => {
+  const formatDate = (date?: string) => {
     if (!date) return "—";
-    const d = new Date(date);
-    if (Number.isNaN(d.getTime())) return date;
-    return d.toLocaleDateString("en-GB", {
+
+    const parsedDate = new Date(date);
+
+    if (Number.isNaN(parsedDate.getTime())) return date;
+
+    return parsedDate.toLocaleDateString("en-GB", {
       year: "numeric",
       month: "short",
       day: "numeric",
@@ -49,47 +73,48 @@ const ItineraryWorkspace = () => {
   };
 
   const memberCount =
-    (trip.familyMembers?.length || 0) + (trip.invitedMembers?.length || 0) + 1;
+    (trip.familyMembers?.length || 0) +
+    (trip.invitedMembers?.length || 0) +
+    1;
 
-  // State for day-wise itinerary
-  const [currentDay, setCurrentDay] = useState(1);
-  const [activities, setActivities] = useState<
-    { day: number; activity: string; place: string; startTime: string; endTime: string; description: string }[]
-  >([]);
-  const [notes, setNotes] = useState<
-    { day: number; note: string }[]
-  >([]);
+  const travelStart = trip.startDate
+    ? new Date(trip.startDate)
+    : new Date();
 
-  // Calculate total travel days
-  const travelStart = trip.startDate ? new Date(trip.startDate) : new Date();
-  const travelEnd = trip.endDate ? new Date(trip.endDate) : new Date();
+  const travelEnd = trip.endDate
+    ? new Date(trip.endDate)
+    : new Date();
+
   const totalDays = Math.max(
     1,
-    Math.ceil((travelEnd.getTime() - travelStart.getTime()) / (1000 * 60 * 60 * 24))
+    Math.ceil(
+      (travelEnd.getTime() - travelStart.getTime()) /
+        (1000 * 60 * 60 * 24)
+    ) + 1
   );
 
-  // Generate day labels based on actual travel dates
-  const dayLabels = [];
-  for (let i = 0; i < totalDays; i++) {
-    const date = new Date(
-      travelStart.getTime() + i * 24 * 60 * 60 * 1000
-    );
-    dayLabels.push({
-      day: i + 1,
-      date: date.toLocaleDateString("en-GB", {
-        year: "numeric",
-        month: "short",
-        day: "numeric",
-      }),
-    });
-  }
+  const dayLabels = Array.from(
+    { length: totalDays },
+    (_, index) => {
+      const date = new Date(
+        travelStart.getTime() +
+          index * 24 * 60 * 60 * 1000
+      );
 
-  // Handle adding an activity
+      return {
+        day: index + 1,
+        date: date.toLocaleDateString("en-GB", {
+          year: "numeric",
+          month: "short",
+          day: "numeric",
+        }),
+      };
+    }
+  );
+
   const handleAddActivity = () => {
-    // In a full implementation, this would open a form dialog
-    // For now, just add a placeholder activity
-    setActivities((prev) => [
-      ...prev,
+    setActivities((previous) => [
+      ...previous,
       {
         day: currentDay,
         activity: "",
@@ -101,10 +126,11 @@ const ItineraryWorkspace = () => {
     ]);
   };
 
-  // Handle saving an activity
-  const handleSaveActivity = (activityData) => {
-    setActivities((prev) =>
-      prev.map((item) =>
+  const handleSaveActivity = (
+    activityData: Partial<Activity>
+  ) => {
+    setActivities((previous) =>
+      previous.map((item) =>
         item.day === currentDay
           ? { ...item, ...activityData }
           : item
@@ -112,26 +138,28 @@ const ItineraryWorkspace = () => {
     );
   };
 
-  // Handle saving a note
-  const handleSaveNote = (noteData) => {
-    setNotes((prev) =>
-      prev.map((item) =>
-        item.day === noteData.day
-          ? { ...item, ...noteData }
-          : item
-      )
-    );
-  };
+  const handleSaveNote = () => {
+    if (!noteInput.trim()) return;
 
-  // Handle changing the current day
-  const handleDayChange = (day: number) => {
-    setCurrentDay(day);
-  };
+    setNotes((previous) => [
+      ...previous,
+      {
+        day: currentDay,
+        note: noteInput.trim(),
+      },
+    ]);
 
-  const trip = trips.find((item) => item.id === tripId);
+    setNoteInput("");
+
+    toast({
+      title: "Note saved",
+      description: "Your travel note has been added.",
+    });
+  };
 
   return (
     <div className="max-w-7xl space-y-6">
+
       {/* Header */}
       <div className="border-b border-neutral-200 pb-6">
         <div className="flex items-center justify-between">
@@ -139,7 +167,8 @@ const ItineraryWorkspace = () => {
             to="/trips"
             className="inline-flex items-center gap-2 text-sm text-neutral-500 hover:text-neutral-900"
           >
-            <ArrowLeft className="w-4 h-4" /> Back to Trips
+            <ArrowLeft className="w-4 h-4" />
+            Back to Trips
           </Link>
 
           <div className="flex items-center gap-2">
@@ -160,32 +189,45 @@ const ItineraryWorkspace = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <p className="text-sm text-neutral-500">Trip Name</p>
-            <p className="font-medium text-neutral-900">{trip.name || "—"}</p>
+            <p className="font-medium text-neutral-900">
+              {trip.name || "—"}
+            </p>
           </div>
 
           <div>
             <p className="text-sm text-neutral-500">Destination</p>
-            <p className="font-medium text-neutral-900">{destinations}</p>
+            <p className="font-medium text-neutral-900">
+              {destinations}
+            </p>
           </div>
 
           <div>
             <p className="text-sm text-neutral-500">Travel Dates</p>
             <p className="font-medium text-neutral-900">
-              {formatDate(trip.startDate)} – {formatDate(trip.endDate)}
+              {formatDate(trip.startDate)} –{" "}
+              {formatDate(trip.endDate)}
             </p>
           </div>
 
           <div>
-            <p className="text-sm text-neutral-500">Total Travellers</p>
-            <p className="font-medium text-neutral-900">{memberCount}</p>
+            <p className="text-sm text-neutral-500">
+              Total Travellers
+            </p>
+            <p className="font-medium text-neutral-900">
+              {memberCount}
+            </p>
           </div>
         </div>
 
-        {/* Member avatars */}
+        {/* Member Avatars */}
         <div className="mt-4 grid grid-cols-3 gap-2">
           {[
-            ...(trip.familyMembers?.map((m) => m.name) || []),
-            ...(trip.invitedMembers?.map((m) => m.name) || []),
+            ...(trip.familyMembers?.map(
+              (member) => member.name
+            ) || []),
+            ...(trip.invitedMembers?.map(
+              (member) => member.name
+            ) || []),
           ]
             .slice(0, 3)
             .map((name, index) => (
@@ -199,21 +241,20 @@ const ItineraryWorkspace = () => {
         </div>
       </div>
 
-      {/* Day Navigation Tabs */}
+      {/* Day Navigation */}
       <div className="bg-white border border-neutral-200 rounded-lg p-3 mb-6">
-        <div className="flex gap-1">
+        <div className="flex gap-1 flex-wrap">
           {dayLabels.map((day) => (
             <button
               key={day.day}
-              className={`flex-1 py-2 rounded-lg ${
+              className={`flex-1 min-w-fit px-3 py-2 rounded-lg ${
                 currentDay === day.day
                   ? "bg-neutral-900 text-white"
-                  : "bg-neutral-100 text-neutral-700 hover:bg-neutral-900"
-              } text-center text-sm font-medium transition-colors`
-            }
+                  : "bg-neutral-100 text-neutral-700 hover:bg-neutral-200"
+              } text-center text-sm font-medium transition-colors`}
               onClick={() => setCurrentDay(day.day)}
             >
-              {day.day} – {day.date}
+              Day {day.day} – {day.date}
             </button>
           ))}
         </div>
@@ -222,22 +263,27 @@ const ItineraryWorkspace = () => {
       {/* Main Itinerary Area */}
       <div className="bg-white border border-neutral-200 rounded-lg p-6">
         <h3 className="text-lg font-semibold text-neutral-900 mb-4">
-          Day {currentDay} – {dayLabels.find((d) => d.day === currentDay)?.date || "—"}
+          Day {currentDay} –{" "}
+          {dayLabels.find(
+            (day) => day.day === currentDay
+          )?.date || "—"}
         </h3>
 
-        {/* Add Activity Button */}
-        <div className="mb-4 flex items-end gap-2">
-          <Plus className="w-4 h-4 mr-2" />
+        {/* Add Activity */}
+        <div className="mb-4 flex items-center gap-2">
           <button
             onClick={handleAddActivity}
-            className="px-4 py-2 border border-neutral-300 rounded-lg text-sm font-medium text-neutral-700 hover:bg-neutral-50 transition-colors"
+            className="inline-flex items-center gap-2 px-4 py-2 border border-neutral-300 rounded-lg text-sm font-medium text-neutral-700 hover:bg-neutral-50 transition-colors"
           >
+            <Plus className="w-4 h-4" />
             Add First Activity
           </button>
         </div>
 
-        {/* Activity Area */}
-        {activities.length === 0 ? (
+        {/* Activities */}
+        {activities.filter(
+          (activity) => activity.day === currentDay
+        ).length === 0 ? (
           <div className="text-center py-8">
             <Calendar className="w-12 h-12 text-neutral-400 mx-auto mb-3" />
             <p className="text-sm text-neutral-500">
@@ -246,27 +292,42 @@ const ItineraryWorkspace = () => {
           </div>
         ) : (
           <div className="space-y-3">
-            {activities.map((activity, i) => (
-              <div
-                key={i}
-                className="p-3 border border-neutral-200 rounded-lg"
-              >
-                <div className="flex items-start gap-3">
-                  <span className="text-sm text-neutral-600 activity-name">
-                    {activity.activity || "—"}
-                  </span>
-                  <span className="ml-3 text-xs text-neutral-500">
-                    ({activity.place || "—"})
-                  </span>
+            {activities
+              .map((activity, index) => ({
+                activity,
+                index,
+              }))
+              .filter(
+                ({ activity }) =>
+                  activity.day === currentDay
+              )
+              .map(({ activity, index }) => (
+                <div
+                  key={index}
+                  className="p-3 border border-neutral-200 rounded-lg"
+                >
+                  <div className="flex items-start gap-3">
+                    <span className="text-sm text-neutral-600 activity-name">
+                      {activity.activity || "—"}
+                    </span>
+
+                    <span className="ml-3 text-xs text-neutral-500">
+                      ({activity.place || "—"})
+                    </span>
+                  </div>
+
+                  <div className="text-xs text-neutral-500 mt-1">
+                    {activity.startTime || "—"} –{" "}
+                    {activity.endTime || "—"}
+                  </div>
+
+                  {activity.description && (
+                    <p className="text-xs text-neutral-500 mt-1">
+                      {activity.description}
+                    </p>
+                  )}
                 </div>
-                <div className="text-xs text-neutral-500 mt-1">
-                  {activity.startTime || "—"} – {activity.endTime || "—"}
-                </div>
-                {activity.description && (
-                  <p className="text-xs text-neutral-500 mt-1">{activity.description}</p>
-                )}
-              </div>
-            ))}
+              ))}
           </div>
         )}
       </div>
@@ -277,46 +338,59 @@ const ItineraryWorkspace = () => {
           Notes
         </h3>
 
-        {notes.length === 0 ? (
+        {notes.filter(
+          (note) => note.day === currentDay
+        ).length === 0 ? (
           <p className="text-sm text-neutral-500 mb-4">
             No notes added for Day {currentDay}
           </p>
         ) : (
-          <div className="space-y-2">
-            {notes.map((note, i) => (
-              <div key={i} className="p-3 border-l border-neutral-300">
-                <p className="font-medium text-neutral-900 mb-1">{note.note}</p>
-                <p className="text-xs text-neutral-500">{dayLabels.find((d) => d.day === note.day)?.date || "—"}</p>
-              </div>
-            ))}
+          <div className="space-y-2 mb-4">
+            {notes
+              .filter((note) => note.day === currentDay)
+              .map((note, index) => (
+                <div
+                  key={index}
+                  className="p-3 border-l border-neutral-300"
+                >
+                  <p className="font-medium text-neutral-900 mb-1">
+                    {note.note}
+                  </p>
+                  <p className="text-xs text-neutral-500">
+                    {dayLabels.find(
+                      (day) => day.day === note.day
+                    )?.date || "—"}
+                  </p>
+                </div>
+              ))}
           </div>
         )}
 
         <div className="mt-4">
           <textarea
             placeholder="Add travel tips, bookings, reminders..."
-            onChange={(e) => {
-              // For prototype, just show the input value
-              setNotes((prev) => [
-                ...prev,
-                { day: currentDay, note: e.target.value },
-              ]);
-            }}
+            value={noteInput}
+            onChange={(event) =>
+              setNoteInput(event.target.value)
+            }
             className="w-full px-3 py-2 border border-neutral-300 rounded-lg text-sm resize-none"
             rows={3}
           />
+
           <button
-            onClick={() => handleSaveNote({ day: currentDay, note: "" })}
+            onClick={handleSaveNote}
             className="mt-2 inline-flex items-center gap-2 px-4 py-2 border border-neutral-300 rounded-lg text-sm font-medium text-neutral-700 hover:bg-neutral-50 transition-colors"
           >
-            <Check className="w-4 h-4 mr-1" /> Save Note
+            <Check className="w-4 h-4" />
+            Save Note
           </button>
         </div>
       </div>
 
       {/* Right-side Panel */}
       <div className="lg:w-1/4 bg-white border border-neutral-200 rounded-lg p-6 space-y-4">
-        {/* Member Preferences & Suggestions */}
+
+        {/* Member Preferences */}
         <div>
           <h3 className="text-lg font-semibold text-neutral-900 mb-3">
             Member Preferences & Suggestions
@@ -326,19 +400,25 @@ const ItineraryWorkspace = () => {
             <p className="text-sm text-neutral-500 mb-2">
               Suggestions submitted by group members:
             </p>
+
             <p className="text-sm text-neutral-500">
               No suggestions yet
             </p>
+
             <p className="text-xs text-neutral-500">
               {memberCount} members have been invited
             </p>
           </div>
 
           <div className="p-3 border border-neutral-200 rounded-lg">
-            <p className="text-xs text-neutral-500">Trip Preference Summary</p>
+            <p className="text-xs text-neutral-500">
+              Trip Preference Summary
+            </p>
+
             <p className="text-sm text-neutral-500">
               Destination: {destinations}
             </p>
+
             <p className="text-sm text-neutral-500">
               Common available dates: Based on group availability
             </p>
@@ -352,9 +432,12 @@ const ItineraryWorkspace = () => {
           </h3>
 
           <div className="p-3 border border-neutral-200 rounded-lg">
-            <p className="text-sm text-neutral-500">Status: Not Started</p>
+            <p className="text-sm text-neutral-500">
+              Status: Not Started
+            </p>
+
             <p className="text-xs text-neutral-500 mt-1">
-              itinerary is ready for planning
+              Itinerary is ready for planning
             </p>
           </div>
         </div>
@@ -371,12 +454,24 @@ const ItineraryWorkspace = () => {
           </Link>
 
           <button
+            onClick={() =>
+              toast({
+                title: "Draft saved",
+                description: "Your itinerary draft is ready.",
+              })
+            }
             className="flex-1 py-3 px-4 bg-neutral-900 text-white text-sm font-medium rounded-lg hover:bg-neutral-800 transition-colors"
           >
             Save as Draft
           </button>
 
           <button
+            onClick={() =>
+              toast({
+                title: "Itinerary ready",
+                description: "Your itinerary is ready to share.",
+              })
+            }
             className="flex-1 py-3 px-4 bg-neutral-900 text-white text-sm font-medium rounded-lg hover:bg-neutral-800 transition-colors"
           >
             Save & Share Itinerary
