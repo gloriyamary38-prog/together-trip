@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import {
@@ -139,9 +140,13 @@ const Dashboard = () => {
               </div>
 
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-semibold text-gray-900">{card.title}</p>
+                <p className="text-sm font-semibold text-gray-900">
+                  {card.title}
+                </p>
 
-                <p className="text-sm text-gray-500">{card.description}</p>
+                <p className="text-sm text-gray-500">
+                  {card.description}
+                </p>
               </div>
 
               <ArrowRight className="w-4 h-4 text-gray-400 flex-shrink-0" />
@@ -282,119 +287,121 @@ const Dashboard = () => {
             })}
           </div>
         )}
+      </section>
 
-        {/* Past Trips */}
-        <section className="mb-8">
-          <div className="flex items-center justify-between mb-3">
-            <h2 className="text-lg font-semibold text-gray-900">
-              Past Trips
-            </h2>
+      {/* Past Trips */}
+      <section className="mb-8">
+        <div className="flex items-center justify-between mb-3">
+          <h2 className="text-lg font-semibold text-gray-900">
+            Past Trips
+          </h2>
 
-            <Link
-              to="/trips"
-              className="text-sm font-medium text-gray-500 hover:text-primary-600 underline"
-            >
-              View All
-            </Link>
-          </div>
+          <Link
+            to="/trips"
+            className="text-sm font-medium text-gray-500 hover:text-primary-600 underline"
+          >
+            View All
+          </Link>
+        </div>
 
-          {pastTrips.length === 0 ? (
-            <p className="text-sm text-gray-500/60">
-              Your completed trips will appear here.
-            </p>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {pastTrips.map((trip) => {
-                return (
-                  <Link
-                    key={trip.id}
-                    to={`/trips/${trip.id}`}
-                    className="flex items-center gap-4 p-4 border border-gray-200 rounded-lg text-left hover:border-gray-300 transition-colors"
-                  >
-                    <div className="w-11 h-11 rounded-lg bg-gray-100 flex items-center justify-center flex-shrink-0">
-                      <ImageIcon className="w-5 h-5 text-gray-400" />
-                    </div>
-
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-semibold text-gray-900">{trip.name}</p>
-
-                      <p className="text-sm text-gray-500">
-                        {getDestinations(trip)}
-                      </p>
-                    </div>
-
-                    <ArrowRight className="w-4 h-4 text-gray-400 flex-shrink-0" />
-                  </Link>
-                );
-              })
-            </div>
-          )}
-        </section>
-
-        {/* Groups */}
-        <section>
-          <div className="flex items-center justify-between mb-3">
-            <h2 className="text-lg font-semibold text-gray-900">
-              Groups
-            </h2>
-
-            <Link
-              to="/groups"
-              className="text-sm font-medium text-gray-500 hover:text-primary-600 underline"
-            >
-              View All
-            </Link>
-          </div>
-
-          <p className="text-sm text-gray-500/60 mb-4">
-            Plan and travel with the people who matter most.
+        {pastTrips.length === 0 ? (
+          <p className="text-sm text-gray-500/60">
+            Your completed trips will appear here.
           </p>
-
+        ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <Link
-              to="/family"
-              className="flex items-center gap-4 p-4 border border-gray-200 rounded-lg text-left hover:border-gray-300 transition-colors"
-            >
-              <div className="w-11 h-11 rounded-lg bg-gray-100 flex items-center justify-center flex-shrink-0">
-                <Users className="w-5 h-5 text-gray-500" />
-              </div>
+            {pastTrips.map((trip) => {
+              return (
+                <Link
+                  key={trip.id}
+                  to={`/trips/${trip.id}`}
+                  className="flex items-center gap-4 p-4 border border-gray-200 rounded-lg text-left hover:border-gray-300 transition-colors"
+                >
+                  <div className="w-11 h-11 rounded-lg bg-gray-100 flex items-center justify-center flex-shrink-0">
+                    <ImageIcon className="w-5 h-5 text-gray-400" />
+                  </div>
 
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-semibold text-gray-900">
-                  Family
-                </p>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-semibold text-gray-900">
+                      {trip.name}
+                    </p>
 
-                <p className="text-sm text-gray-500">
-                  View family members
-                </p>
-              </div>
+                    <p className="text-sm text-gray-500">
+                      {getDestinations(trip)}
+                    </p>
+                  </div>
 
-              <ArrowRight className="w-4 h-4 text-gray-400 flex-shrink-0" />
-            </Link>
-
-            <Link
-              to="/groups"
-              className="flex items-center gap-4 p-4 border border-gray-200 rounded-lg text-left hover:border-gray-300 transition-colors"
-            >
-              <div className="w-11 h-11 rounded-lg bg-gray-100 flex items-center justify-center flex-shrink-0">
-                <Users className="w-5 h-5 text-gray-500" />
-              </div>
-
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-semibold text-gray-900">
-                  Friends
-                </p>
-
-                <p className="text-sm text-gray-500">
-                  View groups
-                </p>
-              </div>
-
-              <ArrowRight className="w-4 h-4 text-gray-400 flex-shrink-0" />
-            </Link>
+                  <ArrowRight className="w-4 h-4 text-gray-400 flex-shrink-0" />
+                </Link>
+              );
+            })}
           </div>
-        </section>
-      </div>
+        )}
+      </section>
+
+      {/* Groups */}
+      <section>
+        <div className="flex items-center justify-between mb-3">
+          <h2 className="text-lg font-semibold text-gray-900">
+            Groups
+          </h2>
+
+          <Link
+            to="/groups"
+            className="text-sm font-medium text-gray-500 hover:text-primary-600 underline"
+          >
+            View All
+          </Link>
+        </div>
+
+        <p className="text-sm text-gray-500/60 mb-4">
+          Plan and travel with the people who matter most.
+        </p>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <Link
+            to="/family"
+            className="flex items-center gap-4 p-4 border border-gray-200 rounded-lg text-left hover:border-gray-300 transition-colors"
+          >
+            <div className="w-11 h-11 rounded-lg bg-gray-100 flex items-center justify-center flex-shrink-0">
+              <Users className="w-5 h-5 text-gray-500" />
+            </div>
+
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-semibold text-gray-900">
+                Family
+              </p>
+
+              <p className="text-sm text-gray-500">
+                View family members
+              </p>
+            </div>
+
+            <ArrowRight className="w-4 h-4 text-gray-400 flex-shrink-0" />
+          </Link>
+
+          <Link
+            to="/groups"
+            className="flex items-center gap-4 p-4 border border-gray-200 rounded-lg text-left hover:border-gray-300 transition-colors"
+          >
+            <div className="w-11 h-11 rounded-lg bg-gray-100 flex items-center justify-center flex-shrink-0">
+              <Users className="w-5 h-5 text-gray-500" />
+            </div>
+
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-semibold text-gray-900">
+                Friends
+              </p>
+
+              <p className="text-sm text-gray-500">
+                View groups
+              </p>
+            </div>
+
+            <ArrowRight className="w-4 h-4 text-gray-400 flex-shrink-0" />
+          </Link>
+        </div>
+      </section>
     </div>
   );
 };
